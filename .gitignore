@@ -15,7 +15,7 @@ venv/
 # Environment variables
 .env
 .env.*
-!.env.sample
+!.env.example
 !.env.test
 
 # IDE
