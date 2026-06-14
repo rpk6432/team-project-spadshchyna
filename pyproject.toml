@@ -19,6 +19,7 @@ dependencies = [
     "celery[redis]>=5.5",
     # S3 / MinIO
     "aioboto3>=14.0",
+    "botocore>=1.35",
     # Stripe
     "stripe>=12.0",
     # Auth
@@ -79,7 +80,7 @@ implicit_reexport = true
 exclude = ["src/migrations/"]
 
 [[tool.mypy.overrides]]
-module = ["aioboto3.*"]
+module = ["aioboto3.*", "botocore.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

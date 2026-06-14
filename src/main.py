@@ -8,10 +8,12 @@ from sqlalchemy.exc import IntegrityError
 
 from config import settings
 from core.exceptions import AppError
+from s3.client import ensure_bucket
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
+    await ensure_bucket()
     yield
 
 
