@@ -14,9 +14,11 @@ services:
         condition: service_healthy
     volumes:
       - .:/app
+      - /app/.venv
 
   celery-worker:
     build: .
+    entrypoint: []
     command: uv run celery -A tasks worker --loglevel=info
     env_file: .env
     environment:
@@ -29,6 +31,7 @@ services:
 
   celery-beat:
     build: .
+    entrypoint: []
     command: uv run celery -A tasks beat --loglevel=info -s /data/celerybeat-schedule
     env_file: .env
     environment:
