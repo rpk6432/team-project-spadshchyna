@@ -1,0 +1,105 @@
+[project]
+name = "spadshchyna"
+version = "0.1.0"
+requires-python = ">=3.14"
+
+dependencies = [
+    # Web
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.34",
+    "pydantic>=2.11",
+    "pydantic-settings>=2.9",
+    # Database
+    "sqlalchemy[asyncio]>=2.0",
+    "asyncpg>=0.30",
+    "alembic>=1.16",
+    # Redis
+    "redis>=6.0",
+    # Celery
+    "celery[redis]>=5.5",
+    # S3 / MinIO
+    "aioboto3>=14.0",
+    "botocore>=1.35",
+    # Stripe
+    "stripe>=12.0",
+    # Auth
+    "bcrypt>=4.3",
+    "pyjwt>=2.10",
+    # Admin
+    "sqladmin>=0.22",
+    "itsdangerous>=2.2",
+    # HTTP
+    "python-multipart>=0.0.20",
+    "httpx>=0.28",
+    # Templates (emails)
+    "jinja2>=3.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=1.0",
+    "httpx>=0.28",
+    "ruff>=0.11",
+    "mypy>=1.15",
+    "pre-commit>=4.0",
+]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 88
+src = ["src"]
+exclude = ["src/migrations/versions/"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "T20",  # flake8-print
+    "RUF",  # ruff-specific rules
+]
+ignore = [
+    "B008",  # allow Depends() in argument defaults
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"scripts/*.py" = ["T201"]
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+plugins = ["pydantic.mypy"]
+mypy_path = "src:tests"
+explicit_package_bases = true
+implicit_reexport = true
+exclude = ["src/migrations/"]
+
+[[tool.mypy.overrides]]
+module = ["aioboto3.*", "botocore.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["src", "tests"]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+omit = ["src/migrations/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+]
+fail_under = 80
+show_missing = true
+skip_empty = true
