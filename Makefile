@@ -1,4 +1,4 @@
-.PHONY: lint format typecheck test check up down logs precommit
+.PHONY: lint format typecheck test check up down logs precommit seed
 
 lint:
 	uv run ruff check src/ tests/
@@ -26,3 +26,6 @@ logs:
 
 precommit:
 	uv run pre-commit install
+
+seed:
+	uv run python scripts/seed.py
