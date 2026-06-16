@@ -1,13 +1,20 @@
 """Idempotent seed script -- populates DB with demo data."""
 
 import asyncio
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 import bcrypt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from config import settings
-from models import Amenity, Homestead, Host, Region, Review, User
+from models import Amenity, Homestead, HomesteadPhoto, Host, Region, Review, User
+from s3.client import ensure_bucket, get_public_url, upload_file
+
+MEDIA_DIR = Path(__file__).parent / "seed_media"
 
 engine = create_async_engine(settings.database_url)
 session_factory = async_sessionmaker(
@@ -69,16 +76,19 @@ HOSTS = [
         "name": "Olena Kovalenko",
         "email": "olena@example.com",
         "languages": ["uk", "en"],
+        "photo_file": "olena.jpg",
     },
     {
         "name": "Mykola Shevchenko",
         "email": "mykola@example.com",
         "languages": ["uk", "en", "pl"],
+        "photo_file": "mykola.jpg",
     },
     {
         "name": "Iryna Bondarenko",
         "email": "iryna@example.com",
         "languages": ["uk", "de"],
+        "photo_file": "iryna.jpg",
     },
 ]
 
@@ -592,7 +602,7 @@ async def seed_hosts(db: AsyncSession) -> list[Host]:
         if host:
             print(f"  [ok] Host exists: {host.name}")
         else:
-            host = Host(**data)
+            host = Host(**{k: v for k, v in data.items() if k != "photo_file"})
             db.add(host)
             await db.flush()
             print(f"  [+] Created host: {host.name}")
@@ -677,6 +687,67 @@ async def seed_reviews(db: AsyncSession, homesteads: list[Homestead]) -> None:
         print(f"  [+] Added {count} reviews for: {homestead.name}")
 
 
+async def seed_photos(db: AsyncSession, homesteads: list[Homestead]) -> None:
+    homesteads_dir = MEDIA_DIR / "homesteads"
+    if not homesteads_dir.exists():
+        print("  [skip] No homesteads photos directory")
+        return
+
+    await ensure_bucket()
+
+    for i, homestead in enumerate(homesteads, 1):
+        folder = homesteads_dir / f"homestead-{i}"
+        if not folder.exists():
+            continue
+
+        existing = await db.execute(
+            select(HomesteadPhoto).where(HomesteadPhoto.homestead_id == homestead.id)
+        )
+        if existing.scalars().first():
+            print(f"  [ok] Photos exist for: {homestead.name}")
+            continue
+
+        jpgs = sorted(folder.glob("*.jpg"))
+        for order, jpg in enumerate(jpgs):
+            key = f"homesteads/{homestead.id}/{jpg.name}"
+            await upload_file(key, jpg.read_bytes())
+            url = get_public_url(key)
+            photo = HomesteadPhoto(
+                homestead_id=homestead.id,
+                url=url,
+                is_main=(order == 0),
+                sort_order=order,
+            )
+            db.add(photo)
+
+        await db.commit()
+        print(f"  [+] Uploaded {len(jpgs)} photos for: {homestead.name}")
+
+
+async def seed_host_photos(db: AsyncSession, hosts: list[Host]) -> None:
+    hosts_dir = MEDIA_DIR / "hosts"
+    if not hosts_dir.exists():
+        print("  [skip] No host photos directory")
+        return
+
+    await ensure_bucket()
+
+    for host, data in zip(hosts, HOSTS, strict=True):
+        if host.photo_url:
+            print(f"  [ok] Photo exists for host: {host.name}")
+            continue
+
+        photo_path = hosts_dir / data["photo_file"]
+        if not photo_path.exists():
+            continue
+
+        key = f"hosts/{host.id}/{data['photo_file']}"
+        await upload_file(key, photo_path.read_bytes())
+        host.photo_url = get_public_url(key)
+        await db.commit()
+        print(f"  [+] Uploaded photo for host: {host.name}")
+
+
 # Main
 
 
@@ -701,6 +772,13 @@ async def main() -> None:
         await seed_reviews(db, homesteads)
 
         await db.commit()
+
+        print("Seeding photos...")
+        await seed_photos(db, homesteads)
+
+        print("Seeding host photos...")
+        await seed_host_photos(db, hosts)
+
         print("\nDone! All data seeded.")
 
 
