@@ -40,7 +40,7 @@ def _main_photo(homestead: Homestead) -> str | None:
     return None
 
 
-def _to_card(homestead: Homestead) -> HomesteadCard:
+def to_card(homestead: Homestead) -> HomesteadCard:
     return HomesteadCard(
         id=homestead.id,
         name=homestead.name,
@@ -73,7 +73,7 @@ async def get_catalog(
     result = await db.execute(items_q)
     homesteads = list(result.scalars().all())
 
-    return [_to_card(h) for h in homesteads], total
+    return [to_card(h) for h in homesteads], total
 
 
 async def get_detail(
@@ -228,7 +228,7 @@ async def get_recommendations(
         .limit(4)
     )
     result = await db.execute(query)
-    return [_to_card(h) for h in result.scalars().all()]
+    return [to_card(h) for h in result.scalars().all()]
 
 
 async def get_regions(db: AsyncSession) -> list[RegionResponse]:
