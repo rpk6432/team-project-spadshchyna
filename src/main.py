@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 
+from api.router import router as api_router
 from config import settings
 from core.exceptions import AppError
 from s3.client import ensure_bucket
@@ -54,6 +55,9 @@ async def unhandled_error_handler(_request: Request, _exc: Exception) -> JSONRes
     )
 
 
-@app.get("/health", tags=["system"])
+@app.get("/health", tags=["System"])
 async def health_check() -> dict[str, str]:
     return {"status": "ok"}
+
+
+app.include_router(api_router)
