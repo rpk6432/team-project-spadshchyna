@@ -28,6 +28,7 @@ ERROR_422 = {"description": "Validation error (invalid input)"}
 )
 async def catalog(
     db: DBSession,
+    user: OptionalUser,
     region_id: int | None = Query(None, description="Filter by region"),
     price_min: int | None = Query(None, ge=0, description="Minimum price per night"),
     price_max: int | None = Query(None, ge=0, description="Maximum price per night"),
@@ -46,7 +47,8 @@ async def catalog(
         limit=limit,
         offset=offset,
     )
-    items, total = await service.get_catalog(db, filters)
+    user_id = user.id if user else None
+    items, total = await service.get_catalog(db, filters, user_id)
     return PaginatedResponse(items=items, total=total, limit=limit, offset=offset)
 
 
@@ -94,9 +96,12 @@ async def check_availability(
         404: ERROR_404,
     },
 )
-async def recommendations(homestead_id: int, db: DBSession) -> list[HomesteadCard]:
+async def recommendations(
+    homestead_id: int, db: DBSession, user: OptionalUser
+) -> list[HomesteadCard]:
     """Return up to 4 random active homesteads, excluding the current one."""
-    return await service.get_recommendations(db, homestead_id)
+    user_id = user.id if user else None
+    return await service.get_recommendations(db, homestead_id, user_id)
 
 
 @region_router.get(
