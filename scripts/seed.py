@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from config import settings
 from models import Amenity, Homestead, HomesteadPhoto, Host, Region, Review, User
-from s3.client import ensure_bucket, get_public_url, upload_file
+from s3.client import ensure_bucket, upload_file
 
 MEDIA_DIR = Path(__file__).parent / "seed_media"
 
@@ -711,10 +711,9 @@ async def seed_photos(db: AsyncSession, homesteads: list[Homestead]) -> None:
         for order, jpg in enumerate(jpgs):
             key = f"homesteads/{homestead.id}/{jpg.name}"
             await upload_file(key, jpg.read_bytes())
-            url = get_public_url(key)
             photo = HomesteadPhoto(
                 homestead_id=homestead.id,
-                url=url,
+                url=key,
                 is_main=(order == 0),
                 sort_order=order,
             )
@@ -743,7 +742,7 @@ async def seed_host_photos(db: AsyncSession, hosts: list[Host]) -> None:
 
         key = f"hosts/{host.id}/{data['photo_file']}"
         await upload_file(key, photo_path.read_bytes())
-        host.photo_url = get_public_url(key)
+        host.photo_url = key
         await db.commit()
         print(f"  [+] Uploaded photo for host: {host.name}")
 
