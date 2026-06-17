@@ -22,6 +22,7 @@ from homesteads.schemas import (
     ReviewResponse,
 )
 from models.booking import Booking
+from models.favourite import Favourite
 from models.homestead import Homestead
 from models.region import Region
 from s3.client import get_public_url
@@ -40,7 +41,25 @@ def _main_photo(homestead: Homestead) -> str | None:
     return None
 
 
-def to_card(homestead: Homestead) -> HomesteadCard:
+async def _favourited_ids(
+    db: AsyncSession, user_id: int | None, homestead_ids: list[int]
+) -> dict[int, bool | None]:
+    """Return {homestead_id: True/False} for authenticated, {id: None} for anonymous."""
+    if user_id is None:
+        return {hid: None for hid in homestead_ids}
+    if not homestead_ids:
+        return {}
+    result = await db.execute(
+        select(Favourite.homestead_id).where(
+            Favourite.user_id == user_id,
+            Favourite.homestead_id.in_(homestead_ids),
+        )
+    )
+    fav_set = set(result.scalars().all())
+    return {hid: hid in fav_set for hid in homestead_ids}
+
+
+def to_card(homestead: Homestead, is_favourited: bool | None = None) -> HomesteadCard:
     return HomesteadCard(
         id=homestead.id,
         name=homestead.name,
@@ -49,11 +68,12 @@ def to_card(homestead: Homestead) -> HomesteadCard:
         rating=homestead.rating,
         review_count=homestead.review_count,
         main_photo=_main_photo(homestead),
+        is_favourited=is_favourited,
     )
 
 
 async def get_catalog(
-    db: AsyncSession, filters: HomesteadFilters
+    db: AsyncSession, filters: HomesteadFilters, user_id: int | None = None
 ) -> tuple[list[HomesteadCard], int]:
     base = select(Homestead)
     base = filters.apply(base)
@@ -73,7 +93,8 @@ async def get_catalog(
     result = await db.execute(items_q)
     homesteads = list(result.scalars().all())
 
-    return [to_card(h) for h in homesteads], total
+    fav_ids = await _favourited_ids(db, user_id, [h.id for h in homesteads])
+    return [to_card(h, fav_ids.get(h.id)) for h in homesteads], total
 
 
 async def get_detail(
@@ -97,8 +118,6 @@ async def get_detail(
 
     is_favourited: bool | None = None
     if user_id is not None:
-        from models.favourite import Favourite
-
         fav_q = select(Favourite.id).where(
             Favourite.user_id == user_id,
             Favourite.homestead_id == homestead_id,
@@ -207,7 +226,7 @@ async def check_availability(
 
 
 async def get_recommendations(
-    db: AsyncSession, homestead_id: int
+    db: AsyncSession, homestead_id: int, user_id: int | None = None
 ) -> list[HomesteadCard]:
     exists = await db.execute(
         select(Homestead.id).where(
@@ -228,7 +247,10 @@ async def get_recommendations(
         .limit(4)
     )
     result = await db.execute(query)
-    return [to_card(h) for h in result.scalars().all()]
+    homesteads = list(result.scalars().all())
+
+    fav_ids = await _favourited_ids(db, user_id, [h.id for h in homesteads])
+    return [to_card(h, fav_ids.get(h.id)) for h in homesteads]
 
 
 async def get_regions(db: AsyncSession) -> list[RegionResponse]:
