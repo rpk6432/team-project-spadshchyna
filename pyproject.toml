@@ -7,14 +7,14 @@ dependencies = [
     # Web
     "fastapi>=0.115",
     "uvicorn[standard]>=0.34",
-    "pydantic>=2.11",
+    "pydantic[email]>=2.11",
     "pydantic-settings>=2.9",
     # Database
     "sqlalchemy[asyncio]>=2.0",
     "asyncpg>=0.30",
     "alembic>=1.16",
     # Redis
-    "redis>=6.0",
+    "redis[hiredis]>=6.0",
     # Celery
     "celery[redis]>=5.5",
     # S3 / MinIO
@@ -88,7 +88,10 @@ ignore_missing_imports = true
 asyncio_mode = "auto"
 testpaths = ["tests"]
 pythonpath = ["src", "tests"]
-filterwarnings = ["ignore::DeprecationWarning"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore:.*HMAC key.*:UserWarning",
+]
 
 [tool.coverage.run]
 source = ["src"]
