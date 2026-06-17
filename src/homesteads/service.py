@@ -1,0 +1,239 @@
+import random
+from datetime import UTC, datetime
+from math import floor
+
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from config import settings
+from core.exceptions import BadRequestError, NotFoundError
+from homesteads.filters import HomesteadFilters
+from homesteads.schemas import (
+    AmenityResponse,
+    AvailabilityRequest,
+    AvailabilityResponse,
+    HomesteadCard,
+    HomesteadDetail,
+    HostResponse,
+    PhotoResponse,
+    PricingResponse,
+    RegionResponse,
+    ReviewResponse,
+)
+from models.booking import Booking
+from models.homestead import Homestead
+from models.region import Region
+from s3.client import get_public_url
+
+
+def _photo_url(url: str | None) -> str | None:
+    return get_public_url(url) if url else None
+
+
+def _main_photo(homestead: Homestead) -> str | None:
+    for photo in homestead.photos:
+        if photo.is_main:
+            return _photo_url(photo.url)
+    if homestead.photos:
+        return _photo_url(homestead.photos[0].url)
+    return None
+
+
+def _to_card(homestead: Homestead) -> HomesteadCard:
+    return HomesteadCard(
+        id=homestead.id,
+        name=homestead.name,
+        region=homestead.region.name,
+        price_per_night=homestead.price_per_night,
+        rating=homestead.rating,
+        review_count=homestead.review_count,
+        main_photo=_main_photo(homestead),
+    )
+
+
+async def get_catalog(
+    db: AsyncSession, filters: HomesteadFilters
+) -> tuple[list[HomesteadCard], int]:
+    base = select(Homestead)
+    base = filters.apply(base)
+
+    count_q = select(func.count()).select_from(base.subquery())
+    total = (await db.execute(count_q)).scalar_one()
+
+    items_q = (
+        base.options(
+            selectinload(Homestead.region),
+            selectinload(Homestead.photos),
+        )
+        .order_by(Homestead.id.asc())
+        .limit(filters.limit)
+        .offset(filters.offset)
+    )
+    result = await db.execute(items_q)
+    homesteads = list(result.scalars().all())
+
+    return [_to_card(h) for h in homesteads], total
+
+
+async def get_detail(
+    db: AsyncSession, homestead_id: int, user_id: int | None
+) -> HomesteadDetail:
+    query = (
+        select(Homestead)
+        .where(Homestead.id == homestead_id, Homestead.is_active.is_(True))
+        .options(
+            selectinload(Homestead.region),
+            selectinload(Homestead.host),
+            selectinload(Homestead.photos),
+            selectinload(Homestead.amenities),
+            selectinload(Homestead.reviews),
+        )
+    )
+    result = await db.execute(query)
+    homestead = result.scalar_one_or_none()
+    if homestead is None:
+        raise NotFoundError("Homestead not found")
+
+    is_favourited: bool | None = None
+    if user_id is not None:
+        from models.favourite import Favourite
+
+        fav_q = select(Favourite.id).where(
+            Favourite.user_id == user_id,
+            Favourite.homestead_id == homestead_id,
+        )
+        is_favourited = (await db.execute(fav_q)).scalar_one_or_none() is not None
+
+    all_amenities = [AmenityResponse(id=a.id, name=a.name) for a in homestead.amenities]
+    sample_size = min(3, len(all_amenities))
+    featured = random.sample(all_amenities, sample_size)
+
+    return HomesteadDetail(
+        id=homestead.id,
+        name=homestead.name,
+        description=homestead.description,
+        bedrooms=homestead.bedrooms,
+        beds=homestead.beds,
+        bathrooms=homestead.bathrooms,
+        rating=homestead.rating,
+        review_count=homestead.review_count,
+        region=homestead.region.name,
+        host=HostResponse(
+            id=homestead.host.id,
+            name=homestead.host.name,
+            photo_url=_photo_url(homestead.host.photo_url),
+            languages=homestead.host.languages,
+        ),
+        photos=[
+            PhotoResponse(
+                id=p.id,
+                url=get_public_url(p.url),
+                is_main=p.is_main,
+                sort_order=p.sort_order,
+            )
+            for p in homestead.photos
+        ],
+        amenities=all_amenities,
+        featured_amenities=featured,
+        reviews=[
+            ReviewResponse(
+                id=r.id,
+                category=r.category,
+                text=r.text,
+                author_name=r.author_name,
+                country=r.country,
+                rating=r.rating,
+                created_at=r.created_at,
+            )
+            for r in homestead.reviews
+        ],
+        pricing=PricingResponse(
+            price_per_night=homestead.price_per_night,
+            base_guests=homestead.base_guests,
+            extra_guest_fee=homestead.extra_guest_fee,
+            max_guests=homestead.max_guests,
+            cleaning_fee=homestead.cleaning_fee,
+            service_fee_pct=settings.service_fee_pct,
+        ),
+        is_favourited=is_favourited,
+    )
+
+
+async def check_availability(
+    db: AsyncSession, homestead_id: int, body: AvailabilityRequest
+) -> AvailabilityResponse:
+    result = await db.execute(
+        select(Homestead).where(
+            Homestead.id == homestead_id, Homestead.is_active.is_(True)
+        )
+    )
+    homestead = result.scalar_one_or_none()
+    if homestead is None:
+        raise NotFoundError("Homestead not found")
+
+    today = datetime.now(UTC).date()
+    if body.check_in < today:
+        raise BadRequestError("check_in must be today or later")
+    if body.guests > homestead.max_guests:
+        raise BadRequestError(f"Maximum {homestead.max_guests} guests allowed")
+
+    nights = (body.check_out - body.check_in).days
+    extra_guests = max(0, body.guests - homestead.base_guests)
+    accommodation = (
+        homestead.price_per_night + homestead.extra_guest_fee * extra_guests
+    ) * nights
+    cleaning = homestead.cleaning_fee
+    service = floor(accommodation * settings.service_fee_pct / 100)
+    total = accommodation + cleaning + service
+
+    overlap_q = select(Booking.id).where(
+        Booking.homestead_id == homestead_id,
+        Booking.status == "confirmed",
+        Booking.check_in < body.check_out,
+        Booking.check_out > body.check_in,
+    )
+    conflict = (await db.execute(overlap_q)).scalar_one_or_none()
+    available = conflict is None
+
+    return AvailabilityResponse(
+        available=available,
+        nights=nights,
+        accommodation_total=accommodation,
+        cleaning_fee=cleaning,
+        service_fee=service,
+        total=total,
+    )
+
+
+async def get_recommendations(
+    db: AsyncSession, homestead_id: int
+) -> list[HomesteadCard]:
+    exists = await db.execute(
+        select(Homestead.id).where(
+            Homestead.id == homestead_id, Homestead.is_active.is_(True)
+        )
+    )
+    if exists.scalar_one_or_none() is None:
+        raise NotFoundError("Homestead not found")
+
+    query = (
+        select(Homestead)
+        .where(Homestead.is_active.is_(True), Homestead.id != homestead_id)
+        .options(
+            selectinload(Homestead.region),
+            selectinload(Homestead.photos),
+        )
+        .order_by(func.random())
+        .limit(4)
+    )
+    result = await db.execute(query)
+    return [_to_card(h) for h in result.scalars().all()]
+
+
+async def get_regions(db: AsyncSession) -> list[RegionResponse]:
+    result = await db.execute(select(Region).order_by(Region.name))
+    return [
+        RegionResponse(id=r.id, name=r.name, slug=r.slug)
+        for r in result.scalars().all()
+    ]
