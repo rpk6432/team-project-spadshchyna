@@ -28,4 +28,4 @@ precommit:
 	uv run pre-commit install
 
 seed:
-	uv run python scripts/seed.py
+	docker compose exec app uv run python scripts/seed.py
