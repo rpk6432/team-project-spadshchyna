@@ -2,6 +2,7 @@ from collections.abc import AsyncIterator
 
 import pytest
 from httpx import ASGITransport, AsyncClient
+from redis.asyncio import Redis
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -23,7 +24,12 @@ test_session_factory = async_sessionmaker(
 
 async def _override_get_db_session() -> AsyncIterator[AsyncSession]:
     async with test_session_factory() as session:
-        yield session
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
 
 
 @pytest.fixture(autouse=True)
@@ -40,6 +46,19 @@ async def setup_tables() -> AsyncIterator[None]:
 async def db() -> AsyncIterator[AsyncSession]:
     async with test_session_factory() as session:
         yield session
+
+
+@pytest.fixture(autouse=True)
+async def reset_redis() -> AsyncIterator[None]:
+    import core.redis as redis_module
+
+    redis_module._client = Redis.from_url(
+        test_settings.redis_url, decode_responses=True
+    )
+    await redis_module._client.flushdb()
+    yield
+    await redis_module._client.flushdb()
+    await redis_module._client.aclose()
 
 
 @pytest.fixture
