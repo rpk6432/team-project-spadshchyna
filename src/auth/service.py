@@ -13,7 +13,7 @@ from auth.schemas import (
 from auth.utils import create_access_token, hash_password, verify_password
 from config import settings
 from core.exceptions import AlreadyExistsError, UnauthorizedError
-from core.redis import redis_client
+from core.redis import get_redis
 from models.user import User
 
 REFRESH_PREFIX = "refresh:"
@@ -23,7 +23,7 @@ REFRESH_TTL = settings.jwt_refresh_ttl_days * 86400
 async def _generate_tokens(user_id: int) -> tuple[str, str]:
     access_token = create_access_token(user_id)
     refresh_token = str(uuid.uuid4())
-    await redis_client.setex(
+    await get_redis().setex(
         f"{REFRESH_PREFIX}{refresh_token}", REFRESH_TTL, str(user_id)
     )
     return access_token, refresh_token
@@ -59,7 +59,7 @@ async def login(db: AsyncSession, body: LoginRequest) -> TokenResponse:
 
 async def refresh(body: RefreshRequest) -> AccessTokenResponse:
     key = f"{REFRESH_PREFIX}{body.refresh_token}"
-    user_id = await redis_client.get(key)
+    user_id = await get_redis().get(key)
     if user_id is None:
         raise UnauthorizedError("Invalid refresh token")
 
@@ -69,6 +69,6 @@ async def refresh(body: RefreshRequest) -> AccessTokenResponse:
 
 async def logout(refresh_token: str) -> None:
     key = f"{REFRESH_PREFIX}{refresh_token}"
-    deleted = await redis_client.delete(key)
+    deleted = await get_redis().delete(key)
     if not deleted:
         raise UnauthorizedError("Invalid refresh token")

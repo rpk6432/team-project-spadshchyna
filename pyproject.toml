@@ -88,7 +88,10 @@ ignore_missing_imports = true
 asyncio_mode = "auto"
 testpaths = ["tests"]
 pythonpath = ["src", "tests"]
-filterwarnings = ["ignore::DeprecationWarning"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore:.*HMAC key.*:UserWarning",
+]
 
 [tool.coverage.run]
 source = ["src"]
