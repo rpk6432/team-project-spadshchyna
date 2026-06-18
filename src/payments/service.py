@@ -3,12 +3,14 @@ from math import floor
 import stripe
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from config import settings
-from core.exceptions import BadRequestError
+from core.exceptions import AlreadyExistsError
 from homesteads.service import compute_price, get_validated_homestead
 from models.booking import Booking
-from payments.schemas import BookingRequest, BookingResponse
+from models.homestead import Homestead
+from payments.schemas import BookingListItem, BookingRequest, BookingResponse
 
 
 async def create_booking(
@@ -27,7 +29,7 @@ async def create_booking(
     )
     conflict = (await db.execute(overlap_q)).scalar_one_or_none()
     if conflict is not None:
-        raise BadRequestError("Dates are not available")
+        raise AlreadyExistsError("Dates are not available")
 
     price = compute_price(homestead, body.check_in, body.check_out, body.guests)
     donation = floor(price.accommodation * body.donation_pct / 100)
@@ -97,3 +99,49 @@ async def create_booking(
         donation_amount=donation,
         total=total,
     )
+
+
+async def handle_webhook(db: AsyncSession, payload: bytes, sig: str) -> None:
+    """Verify Stripe signature and confirm booking on successful payment."""
+    event = stripe.Webhook.construct_event(  # type: ignore[no-untyped-call]
+        payload, sig, settings.stripe_webhook_secret
+    )
+
+    if event.type != "checkout.session.completed":
+        return
+
+    session_id = event.data.object.id
+    result = await db.execute(
+        select(Booking).where(Booking.stripe_session_id == session_id)
+    )
+    booking = result.scalar_one_or_none()
+    if booking is None:
+        return
+
+    booking.status = "confirmed"
+    await db.commit()
+
+
+async def get_bookings(db: AsyncSession, user_id: int) -> list[BookingListItem]:
+    """Return all bookings for a user, newest first."""
+    result = await db.execute(
+        select(Booking)
+        .where(Booking.user_id == user_id)
+        .options(selectinload(Booking.homestead).load_only(Homestead.name))
+        .order_by(Booking.created_at.desc())
+    )
+    bookings = result.scalars().all()
+    return [
+        BookingListItem(
+            id=b.id,
+            homestead_id=b.homestead_id,
+            homestead_name=b.homestead.name,
+            check_in=b.check_in,
+            check_out=b.check_out,
+            guests=b.guests,
+            status=b.status,
+            total=b.total,
+            created_at=b.created_at,
+        )
+        for b in bookings
+    ]
