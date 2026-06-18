@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from sqlalchemy import Select
 
+from core.exceptions import BadRequestError
 from models.homestead import Homestead
 
 
@@ -14,6 +15,14 @@ class HomesteadFilters:
     guests: int | None = None
     limit: int = 12
     offset: int = 0
+
+    def __post_init__(self) -> None:
+        if (
+            self.price_min is not None
+            and self.price_max is not None
+            and self.price_min > self.price_max
+        ):
+            raise BadRequestError("price_min must be less than or equal to price_max")
 
     def apply(self, query: Select[tuple[Homestead]]) -> Select[tuple[Homestead]]:
         query = query.where(Homestead.is_active.is_(True))
