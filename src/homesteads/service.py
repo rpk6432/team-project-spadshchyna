@@ -1,6 +1,7 @@
 import random
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from math import floor
+from typing import NamedTuple
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -57,6 +58,51 @@ async def _favourited_ids(
     )
     fav_set = set(result.scalars().all())
     return {hid: hid in fav_set for hid in homestead_ids}
+
+
+class PriceBreakdown(NamedTuple):
+    nights: int
+    accommodation: int
+    cleaning: int
+    service_fee: int
+    total: int
+
+
+def compute_price(
+    homestead: Homestead, check_in: date, check_out: date, guests: int
+) -> PriceBreakdown:
+    """Compute price breakdown for a homestead booking."""
+    nights = (check_out - check_in).days
+    extra_guests = max(0, guests - homestead.base_guests)
+    accommodation = (
+        homestead.price_per_night + homestead.extra_guest_fee * extra_guests
+    ) * nights
+    cleaning = homestead.cleaning_fee
+    service_fee = floor(accommodation * settings.service_fee_pct / 100)
+    total = accommodation + cleaning + service_fee
+    return PriceBreakdown(nights, accommodation, cleaning, service_fee, total)
+
+
+async def get_validated_homestead(
+    db: AsyncSession, homestead_id: int, check_in: date, guests: int
+) -> Homestead:
+    """Fetch active homestead and validate booking params."""
+    result = await db.execute(
+        select(Homestead).where(
+            Homestead.id == homestead_id, Homestead.is_active.is_(True)
+        )
+    )
+    homestead = result.scalar_one_or_none()
+    if homestead is None:
+        raise NotFoundError("Homestead not found")
+
+    today = datetime.now(UTC).date()
+    if check_in < today:
+        raise BadRequestError("check_in must be today or later")
+    if guests > homestead.max_guests:
+        raise BadRequestError(f"Maximum {homestead.max_guests} guests allowed")
+
+    return homestead
 
 
 def to_card(homestead: Homestead, is_favourited: bool | None = None) -> HomesteadCard:
@@ -182,29 +228,11 @@ async def get_detail(
 async def check_availability(
     db: AsyncSession, homestead_id: int, body: AvailabilityRequest
 ) -> AvailabilityResponse:
-    result = await db.execute(
-        select(Homestead).where(
-            Homestead.id == homestead_id, Homestead.is_active.is_(True)
-        )
+    homestead = await get_validated_homestead(
+        db, homestead_id, body.check_in, body.guests
     )
-    homestead = result.scalar_one_or_none()
-    if homestead is None:
-        raise NotFoundError("Homestead not found")
 
-    today = datetime.now(UTC).date()
-    if body.check_in < today:
-        raise BadRequestError("check_in must be today or later")
-    if body.guests > homestead.max_guests:
-        raise BadRequestError(f"Maximum {homestead.max_guests} guests allowed")
-
-    nights = (body.check_out - body.check_in).days
-    extra_guests = max(0, body.guests - homestead.base_guests)
-    accommodation = (
-        homestead.price_per_night + homestead.extra_guest_fee * extra_guests
-    ) * nights
-    cleaning = homestead.cleaning_fee
-    service = floor(accommodation * settings.service_fee_pct / 100)
-    total = accommodation + cleaning + service
+    price = compute_price(homestead, body.check_in, body.check_out, body.guests)
 
     overlap_q = select(Booking.id).where(
         Booking.homestead_id == homestead_id,
@@ -217,11 +245,11 @@ async def check_availability(
 
     return AvailabilityResponse(
         available=available,
-        nights=nights,
-        accommodation_total=accommodation,
-        cleaning_fee=cleaning,
-        service_fee=service,
-        total=total,
+        nights=price.nights,
+        accommodation_total=price.accommodation,
+        cleaning_fee=price.cleaning,
+        service_fee=price.service_fee,
+        total=price.total,
     )
 
 
