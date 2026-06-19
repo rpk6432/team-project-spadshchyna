@@ -4,10 +4,9 @@ from auth.dependencies import CurrentUser, DBSession
 from favourites import service
 from homesteads.schemas import HomesteadCard
 from schemas.common import MessageResponse
+from schemas.docs import ERROR_401, ERROR_404, ERROR_409
 
 router = APIRouter(prefix="/favourites", tags=["Favourites"])
-
-ERROR_401 = {"description": "Not authenticated"}
 
 
 @router.post(
@@ -17,8 +16,8 @@ ERROR_401 = {"description": "Not authenticated"}
     response_model=MessageResponse,
     responses={
         401: ERROR_401,
-        404: {"description": "Homestead not found"},
-        409: {"description": "Already in favourites"},
+        404: ERROR_404,
+        409: ERROR_409,
     },
 )
 async def add_favourite(
@@ -35,7 +34,7 @@ async def add_favourite(
     response_model=MessageResponse,
     responses={
         401: ERROR_401,
-        404: {"description": "Favourite not found"},
+        404: ERROR_404,
     },
 )
 async def remove_favourite(

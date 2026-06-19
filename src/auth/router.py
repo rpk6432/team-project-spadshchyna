@@ -11,12 +11,9 @@ from auth.schemas import (
     UserResponse,
 )
 from schemas.common import MessageResponse
+from schemas.docs import ERROR_401, ERROR_409, ERROR_422
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
-
-ERROR_401 = {"description": "Not authenticated or invalid token"}
-ERROR_409 = {"description": "Email already registered"}
-ERROR_422 = {"description": "Validation error (invalid input)"}
 
 
 @router.post(
