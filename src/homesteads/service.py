@@ -33,7 +33,7 @@ def _photo_url(url: str | None) -> str | None:
     return get_public_url(url) if url else None
 
 
-def _main_photo(homestead: Homestead) -> str | None:
+def main_photo(homestead: Homestead) -> str | None:
     for photo in homestead.photos:
         if photo.is_main:
             return _photo_url(photo.url)
@@ -113,7 +113,7 @@ def to_card(homestead: Homestead, is_favourited: bool | None = None) -> Homestea
         price_per_night=homestead.price_per_night,
         rating=homestead.rating,
         review_count=homestead.review_count,
-        main_photo=_main_photo(homestead),
+        main_photo=main_photo(homestead),
         is_favourited=is_favourited,
     )
 
