@@ -14,6 +14,9 @@ from config import Settings
 from database import get_db_session
 from main import app
 from models import Base
+from models.homestead import Homestead, HomesteadPhoto
+from models.host import Host
+from models.region import Region
 
 test_settings = Settings(_env_file=".env.test")
 test_engine = create_async_engine(test_settings.database_url)
@@ -68,3 +71,64 @@ async def client() -> AsyncIterator[AsyncClient]:
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
     app.dependency_overrides.clear()
+
+
+# ---------- Shared test helpers ----------
+
+API = "/api/v1"
+AUTH = "/api/v1/auth"
+
+REGISTER_DATA = {
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john@example.com",
+    "password": "securepass123",
+}
+
+
+async def seed_homestead(db: AsyncSession) -> Homestead:
+    """Insert minimal data and return a homestead."""
+
+    region = Region(name="Carpathians", slug="carpathians")
+    host = Host(name="Olha", email="olha@example.com", languages=["Ukrainian"])
+    db.add_all([region, host])
+    await db.flush()
+
+    homestead = Homestead(
+        host_id=host.id,
+        region_id=region.id,
+        name="Stara Khata",
+        description="A cozy village house.",
+        price_per_night=1200,
+        base_guests=2,
+        extra_guest_fee=300,
+        max_guests=5,
+        cleaning_fee=500,
+        bedrooms=2,
+        beds=3,
+        bathrooms=1,
+        rating=4.8,
+        review_count=1,
+    )
+    db.add(homestead)
+    await db.flush()
+
+    photo = HomesteadPhoto(
+        homestead_id=homestead.id, url="homesteads/1/main.jpg", is_main=True
+    )
+    db.add(photo)
+    await db.commit()
+    return homestead
+
+
+async def auth_header(client: AsyncClient) -> dict[str, str]:
+    """Register a user and return Authorization header."""
+    resp = await client.post(f"{AUTH}/register", json=REGISTER_DATA)
+    token = resp.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
+async def get_user_id(client: AsyncClient, headers: dict[str, str]) -> int:
+    """Return the user ID from /auth/me."""
+    resp = await client.get(f"{AUTH}/me", headers=headers)
+    return resp.json()["id"]

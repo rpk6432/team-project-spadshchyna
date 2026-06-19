@@ -3,10 +3,9 @@ from fastapi import APIRouter, Request, status
 from auth.dependencies import CurrentUser, DBSession
 from payments import service
 from payments.schemas import BookingListItem, BookingRequest, BookingResponse
+from schemas.docs import ERROR_400, ERROR_401, ERROR_404, ERROR_409
 
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
-
-ERROR_401 = {"description": "Not authenticated"}
 
 
 @router.post(
@@ -15,10 +14,10 @@ ERROR_401 = {"description": "Not authenticated"}
     summary="Create booking",
     response_model=BookingResponse,
     responses={
-        400: {"description": "Invalid booking parameters"},
+        400: ERROR_400,
         401: ERROR_401,
-        404: {"description": "Homestead not found"},
-        409: {"description": "Dates not available"},
+        404: ERROR_404,
+        409: ERROR_409,
     },
 )
 async def create_booking(

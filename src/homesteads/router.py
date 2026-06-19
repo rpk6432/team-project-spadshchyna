@@ -11,13 +11,10 @@ from homesteads.schemas import (
     RegionResponse,
 )
 from schemas.common import PaginatedResponse
+from schemas.docs import ERROR_400, ERROR_404, ERROR_422
 
 homestead_router = APIRouter(prefix="/homesteads", tags=["Homesteads"])
 region_router = APIRouter(prefix="/regions", tags=["Regions"])
-
-ERROR_400 = {"description": "Invalid request (business rule violation)"}
-ERROR_404 = {"description": "Homestead not found"}
-ERROR_422 = {"description": "Validation error (invalid input)"}
 
 
 @homestead_router.get(
