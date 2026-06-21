@@ -28,6 +28,8 @@ dependencies = [
     # Admin
     "sqladmin>=0.22",
     "itsdangerous>=2.2",
+    "wtforms<3.2",
+    "pillow>=11.0",
     # HTTP
     "python-multipart>=0.0.20",
     "httpx>=0.28",
@@ -70,6 +72,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
 "scripts/*.py" = ["T201"]
+"src/admin/views.py" = ["RUF012"]
 
 [tool.mypy]
 python_version = "3.14"
@@ -81,7 +84,7 @@ implicit_reexport = true
 exclude = ["src/migrations/"]
 
 [[tool.mypy.overrides]]
-module = ["aioboto3.*", "botocore.*"]
+module = ["aioboto3.*", "botocore.*", "wtforms.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
