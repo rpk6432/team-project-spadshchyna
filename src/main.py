@@ -5,7 +5,9 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
+from starlette.middleware.sessions import SessionMiddleware
 
+from admin.setup import setup_admin
 from api.router import router as api_router
 from config import settings
 from core.exceptions import AppError
@@ -20,6 +22,7 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
 
 app = FastAPI(title="Spadshchyna API", lifespan=lifespan)
 
+app.add_middleware(SessionMiddleware, secret_key=settings.jwt_secret)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[settings.frontend_url],
@@ -61,3 +64,4 @@ async def health_check() -> dict[str, str]:
 
 
 app.include_router(api_router)
+setup_admin(app)
