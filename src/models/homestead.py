@@ -46,8 +46,12 @@ class Homestead(Base):
         passive_deletes=True,
     )
     amenities: Mapped[list[Amenity]] = relationship(secondary=homestead_amenity)
-    reviews: Mapped[list[Review]] = relationship(back_populates="homestead")
-    bookings: Mapped[list[Booking]] = relationship(back_populates="homestead")
+    reviews: Mapped[list[Review]] = relationship(
+        back_populates="homestead", passive_deletes=True
+    )
+    bookings: Mapped[list[Booking]] = relationship(
+        back_populates="homestead", passive_deletes=True
+    )
 
     def __str__(self) -> str:
         return self.name
