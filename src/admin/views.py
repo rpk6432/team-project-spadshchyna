@@ -11,6 +11,7 @@ from wtforms import MultipleFileField as WTMultipleFileField
 from wtforms import SelectField, SelectMultipleField
 from wtforms.validators import Email, NumberRange
 
+from admin.hooks import recalc_homestead_rating
 from admin.utils import (
     HOST_AVATAR_SIZE,
     format_s3_thumbnail,
@@ -24,6 +25,7 @@ from models.booking import Booking
 from models.homestead import Homestead, HomesteadPhoto
 from models.host import Host
 from models.region import Region
+from models.review import Review
 from models.user import User
 from s3.client import delete_file, upload_file
 
@@ -204,6 +206,7 @@ class HomesteadAdmin(ModelView, model=Homestead):
         Homestead.created_at,
     ]
     column_details_exclude_list = [Homestead.host_id, Homestead.region_id]
+    details_template = "homestead_detail.html"
     form_ajax_refs = {
         "host": {"fields": ["name"], "order_by": "name"},
         "region": {"fields": ["name"], "order_by": "name"},
@@ -249,9 +252,9 @@ class HomesteadAdmin(ModelView, model=Homestead):
         )
         async with async_session() as session:
             result = await session.execute(select(Amenity).order_by(Amenity.name))
-            amenity_field.kwargs = {
-                "choices": [(a.id, a.name) for a in result.scalars().all()]
-            }
+            amenity_field.kwargs["choices"] = [
+                (a.id, a.name) for a in result.scalars().all()
+            ]
         form.amenity_ids = amenity_field
 
         form.upload_photos = WTMultipleFileField(
@@ -446,3 +449,32 @@ class HomesteadPhotoAdmin(ModelView, model=HomesteadPhoto):
                 )
 
             await session.commit()
+
+
+class ReviewAdmin(ModelView, model=Review):
+    name = "Review"
+    name_plural = "Reviews"
+    icon = "fa-solid fa-star"
+    column_list = [
+        Review.id,
+        Review.homestead,
+        Review.author_name,
+        Review.rating,
+    ]
+    column_details_exclude_list = [Review.homestead_id]
+    form_excluded_columns = [Review.created_at]
+    form_ajax_refs = {"homestead": {"fields": ["name"], "order_by": "name"}}
+    form_args = {"rating": {"validators": [NumberRange(min=1, max=5)]}}
+
+    async def after_model_change(
+        self, data: dict[str, Any], model: Review, is_created: bool, request: Request
+    ) -> None:
+        await recalc_homestead_rating(model.homestead_id)
+
+    async def on_model_delete(self, model: Review, request: Request) -> None:
+        self._deleted_homestead_id = model.homestead_id
+
+    async def after_model_delete(self, model: Review, request: Request) -> None:
+        homestead_id: int | None = getattr(self, "_deleted_homestead_id", None)
+        if homestead_id:
+            await recalc_homestead_rating(homestead_id)
