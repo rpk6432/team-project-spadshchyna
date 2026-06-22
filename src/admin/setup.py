@@ -2,7 +2,15 @@ from fastapi import FastAPI
 from sqladmin import Admin
 
 from admin.auth import AdminAuth
-from admin.views import AmenityAdmin, BookingAdmin, RegionAdmin, UserAdmin
+from admin.views import (
+    AmenityAdmin,
+    BookingAdmin,
+    HomesteadAdmin,
+    HomesteadPhotoAdmin,
+    HostAdmin,
+    RegionAdmin,
+    UserAdmin,
+)
 from config import settings
 from database import engine
 
@@ -18,3 +26,6 @@ def setup_admin(app: FastAPI) -> None:
     admin.add_view(RegionAdmin)
     admin.add_view(AmenityAdmin)
     admin.add_view(BookingAdmin)
+    admin.add_view(HostAdmin)
+    admin.add_view(HomesteadAdmin)
+    admin.add_view(HomesteadPhotoAdmin)
