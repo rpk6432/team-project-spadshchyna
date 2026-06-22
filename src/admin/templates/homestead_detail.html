@@ -1,0 +1,57 @@
+{% extends "sqladmin/details.html" %}
+{% block details_table %}
+<div class="table-responsive">
+  <table class="table card-table table-vcenter text-nowrap table-hover table-bordered">
+    <thead>
+      <tr>
+        <th class="w-1">Column</th>
+        <th class="w-1">Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for name in model_view._details_prop_names %}
+      {% set label = model_view._column_labels.get(name, name) %}
+      <tr>
+        <td>{{ label }}</td>
+        {% set value, formatted_value = model_view.get_detail_value(model, name) %}
+        {% if name == "photos" %}
+        <td style="white-space:normal">
+          {% if value %}
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            {% for photo in value %}
+            {% if photo.url %}
+            <a href="{{ model_view._build_url_for('admin:details', request, photo) }}">
+              <img src="{{ photo.url | s3_url }}"
+                   style="width:100px;height:100px;object-fit:cover;border-radius:4px;border:1px solid #dee2e6">
+            </a>
+            {% endif %}
+            {% endfor %}
+          </div>
+          {% else %}
+          No photos
+          {% endif %}
+        </td>
+        {% elif name in model_view._relation_names %}
+        {% if is_list( value ) %}
+        <td>
+          {% for elem, formatted_elem in zip(value, formatted_value) %}
+          {% if model_view.show_compact_lists %}
+          <a href="{{ model_view._build_url_for('admin:details', request, elem) }}">({{ formatted_elem }})</a>
+          {% else %}
+          <a href="{{ model_view._build_url_for('admin:details', request, elem) }}">{{ formatted_elem }}</a><br />
+          {% endif %}
+          {% endfor %}
+        </td>
+        {% else %}
+        <td><a href="{{ model_view._url_for_details_with_prop(request, model, name) }}">{{ formatted_value }}</a>
+        </td>
+        {% endif %}
+        {% else %}
+        <td>{{ formatted_value }}</td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -66,14 +66,22 @@ async def reset_redis() -> AsyncIterator[None]:
 
 @pytest.fixture
 async def client() -> AsyncIterator[AsyncClient]:
+    import admin.auth as admin_auth_module
+    import database
+
     app.dependency_overrides[get_db_session] = _override_get_db_session
+    original_session = database.async_session
+    database.async_session = test_session_factory
+    admin_auth_module.async_session = test_session_factory
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
+    database.async_session = original_session
+    admin_auth_module.async_session = original_session
     app.dependency_overrides.clear()
 
 
-# ---------- Shared test helpers ----------
+# Shared test helpers
 
 API = "/api/v1"
 AUTH = "/api/v1/auth"
