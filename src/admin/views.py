@@ -4,7 +4,8 @@ from typing import Any
 
 from PIL import Image
 from sqladmin import ModelView
-from sqlalchemy import func, select, update
+from sqlalchemy import Select, func, select, update
+from sqlalchemy.orm import selectinload
 from starlette.requests import Request
 from wtforms import FileField as WTFileField
 from wtforms import MultipleFileField as WTMultipleFileField
@@ -243,6 +244,11 @@ class HomesteadAdmin(ModelView, model=Homestead):
         "beds": _positive,
         "bathrooms": _positive,
     }
+
+    def form_edit_query(self, request: Request) -> Select[Any]:
+        return (
+            super().form_edit_query(request).options(selectinload(Homestead.amenities))
+        )
 
     async def scaffold_form(self, form_rules: list[str] | None = None) -> type:
         form = await super().scaffold_form(form_rules)
