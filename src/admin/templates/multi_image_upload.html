@@ -1,0 +1,53 @@
+<div id="multi-upload-$fid">
+  <div class="preview-grid" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px"></div>
+  <label class="btn btn-outline-primary btn-sm" style="cursor:pointer">
+    <i class="fa-solid fa-plus"></i> Add Photos
+    <input type="file" name="$name" accept="image/*" multiple
+           style="display:none">
+  </label>
+</div>
+<script>
+(function(){
+  const c=document.getElementById('multi-upload-$fid');
+  const inp=c.querySelector('input[type="file"]');
+  const grid=c.querySelector('.preview-grid');
+  const files=[];
+
+  inp.addEventListener('change',function(){
+    for(let i=0;i<this.files.length;i++) files.push(this.files[i]);
+    sync(); render();
+  });
+
+  function sync(){
+    const dt=new DataTransfer();
+    files.forEach(function(f){dt.items.add(f)});
+    inp.files=dt.files;
+  }
+
+  function render(){
+    grid.innerHTML='';
+    files.forEach(function(file,idx){
+      const r=new FileReader();
+      r.onload=function(e){
+        const w=document.createElement('div');
+        w.style.cssText='position:relative;display:inline-block';
+        const img=document.createElement('img');
+        img.src=e.target.result;
+        img.style.cssText='width:100px;height:100px;object-fit:cover;border-radius:4px;border:1px solid #dee2e6';
+        const btn=document.createElement('button');
+        btn.type='button';
+        btn.className='btn btn-danger btn-sm';
+        btn.innerHTML='<i class="fa-solid fa-xmark"></i>';
+        btn.style.cssText='position:absolute;top:-8px;right:-8px;width:22px;height:22px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px';
+        btn.addEventListener('click',function(){
+          files.splice(idx,1); sync(); render();
+        });
+        w.appendChild(img);
+        w.appendChild(btn);
+        grid.appendChild(w);
+      };
+      r.readAsDataURL(file);
+    });
+  }
+})();
+</script>
