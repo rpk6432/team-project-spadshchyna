@@ -83,7 +83,9 @@ class RegionAdmin(ModelView, model=Region):
     async def on_model_change(
         self, data: dict[str, Any], model: Region, is_created: bool, request: Request
     ) -> None:
-        model.slug = re.sub(r"[^a-z0-9]+", "-", model.name.lower()).strip("-")
+        name = data.get("name") or model.name
+        if name:
+            model.slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
     async def on_model_delete(self, model: Region, request: Request) -> None:
         async with async_session() as session:
