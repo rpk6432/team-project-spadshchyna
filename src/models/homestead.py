@@ -63,7 +63,7 @@ class HomesteadPhoto(Base):
     homestead_id: Mapped[int] = mapped_column(
         ForeignKey("homesteads.id", ondelete="CASCADE")
     )
-    url: Mapped[str] = mapped_column(String(500))
+    url: Mapped[str] = mapped_column(String(500), default="")
     is_main: Mapped[bool] = mapped_column(default=False)
     sort_order: Mapped[int] = mapped_column(default=0)
 
