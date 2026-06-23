@@ -436,6 +436,9 @@ class HomesteadPhotoAdmin(ModelView, model=HomesteadPhoto):
     ) -> None:
         self._pending_photo: dict[str, Any] | None = None
         upload = data.get("photo_file")
+        has_file = upload and hasattr(upload, "read") and upload.size
+        if is_created and not has_file:
+            raise ValueError("Please upload a photo file.")
         if upload and hasattr(upload, "read"):
             content = await upload.read()
             if content:
