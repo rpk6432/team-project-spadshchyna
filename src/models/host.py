@@ -15,7 +15,7 @@ class Host(Base):
     name: Mapped[str] = mapped_column(String(100))
     photo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     languages: Mapped[list[str]] = mapped_column(JSON, default=list)
-    email: Mapped[str] = mapped_column(String(255))
+    email: Mapped[str] = mapped_column(String(255), unique=True)
 
     homesteads: Mapped[list[Homestead]] = relationship(back_populates="host")
 
