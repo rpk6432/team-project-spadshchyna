@@ -142,10 +142,28 @@ class HostAdmin(ModelView, model=Host):
     name_plural = "Hosts"
     icon = "fa-solid fa-house-user"
     column_list = [Host.id, Host.name, Host.email]
-    form_excluded_columns = [Host.homesteads, Host.photo_url]
+    form_columns = ["name", "email", "languages"]
+    form_overrides = {"languages": SelectMultipleField}
     form_args = {
         "email": {"validators": [Email()]},
         "name": _text_field(),
+        "languages": {
+            "choices": [
+                ("uk", "Ukrainian"),
+                ("en", "English"),
+                ("pl", "Polish"),
+                ("de", "German"),
+                ("fr", "French"),
+                ("it", "Italian"),
+                ("es", "Spanish"),
+                ("cs", "Czech"),
+                ("sk", "Slovak"),
+                ("ro", "Romanian"),
+                ("hu", "Hungarian"),
+            ],
+            "widget": DualListboxWidget(),
+            "validators": [],
+        },
     }
     column_labels = {"photo_url": "Photo"}
     column_formatters_detail = {
@@ -163,6 +181,8 @@ class HostAdmin(ModelView, model=Host):
         self, data: dict[str, Any], model: Host, is_created: bool, request: Request
     ) -> None:
         self._pending_photo: dict[str, Any] | None = None
+        if not data.get("languages"):
+            raise ValueError("Select at least one language.")
         upload = data.get("photo_file")
         if upload and hasattr(upload, "read"):
             content = await upload.read()
