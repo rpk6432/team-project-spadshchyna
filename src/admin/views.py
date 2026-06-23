@@ -10,7 +10,7 @@ from starlette.requests import Request
 from wtforms import FileField as WTFileField
 from wtforms import MultipleFileField as WTMultipleFileField
 from wtforms import SelectField, SelectMultipleField
-from wtforms.validators import Email, NumberRange
+from wtforms.validators import DataRequired, Email, NumberRange, ValidationError
 
 from admin.hooks import recalc_homestead_rating
 from admin.utils import (
@@ -31,6 +31,18 @@ from models.user import User
 from s3.client import delete_file, upload_file
 
 
+def _has_letters(_form: Any, field: Any) -> None:
+    if field.data and not any(c.isalpha() for c in field.data):
+        raise ValidationError("Must contain at least one letter.")
+
+
+def _text_field() -> dict[str, Any]:
+    return {
+        "filters": [str.strip],
+        "validators": [DataRequired(), _has_letters],
+    }
+
+
 class UserAdmin(ModelView, model=User):
     name = "User"
     name_plural = "Users"
@@ -43,7 +55,11 @@ class UserAdmin(ModelView, model=User):
         User.favourites,
         User.created_at,
     ]
-    form_args = {"email": {"validators": [Email()]}}
+    form_args = {
+        "email": {"validators": [Email()]},
+        "first_name": _text_field(),
+        "last_name": _text_field(),
+    }
     can_create = False
     can_delete = False
 
@@ -61,6 +77,7 @@ class RegionAdmin(ModelView, model=Region):
     icon = "fa-solid fa-map"
     column_list = [Region.id, Region.name, Region.slug]
     form_excluded_columns = [Region.homesteads]
+    form_args = {"name": _text_field()}
 
     async def on_model_delete(self, model: Region, request: Request) -> None:
         async with async_session() as session:
@@ -79,6 +96,7 @@ class AmenityAdmin(ModelView, model=Amenity):
     name_plural = "Amenities"
     icon = "fa-solid fa-wifi"
     column_list = [Amenity.id, Amenity.name]
+    form_args = {"name": _text_field()}
 
 
 class BookingAdmin(ModelView, model=Booking):
@@ -119,7 +137,10 @@ class HostAdmin(ModelView, model=Host):
     icon = "fa-solid fa-house-user"
     column_list = [Host.id, Host.name, Host.email]
     form_excluded_columns = [Host.homesteads, Host.photo_url]
-    form_args = {"email": {"validators": [Email()]}}
+    form_args = {
+        "email": {"validators": [Email()]},
+        "name": _text_field(),
+    }
     column_labels = {"photo_url": "Photo"}
     column_formatters_detail = {
         "photo_url": lambda m, _: format_s3_thumbnail(getattr(m, "photo_url", None)),
@@ -243,6 +264,8 @@ class HomesteadAdmin(ModelView, model=Homestead):
         "bedrooms": _positive,
         "beds": _positive,
         "bathrooms": _positive,
+        "name": _text_field(),
+        "description": _text_field(),
     }
 
     def form_edit_query(self, request: Request) -> Select[Any]:
@@ -470,7 +493,13 @@ class ReviewAdmin(ModelView, model=Review):
     column_details_exclude_list = [Review.homestead_id]
     form_excluded_columns = [Review.created_at]
     form_ajax_refs = {"homestead": {"fields": ["name"], "order_by": "name"}}
-    form_args = {"rating": {"validators": [NumberRange(min=1, max=5)]}}
+    form_args = {
+        "rating": {"validators": [NumberRange(min=1, max=5)]},
+        "author_name": _text_field(),
+        "country": _text_field(),
+        "text": _text_field(),
+        "category": _text_field(),
+    }
 
     async def after_model_change(
         self, data: dict[str, Any], model: Review, is_created: bool, request: Request
