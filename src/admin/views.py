@@ -39,7 +39,7 @@ def _has_letters(_form: Any, field: Any) -> None:
 
 def _text_field() -> dict[str, Any]:
     return {
-        "filters": [str.strip],
+        "filters": [lambda s: s.strip() if s else s],
         "validators": [DataRequired(), _has_letters],
     }
 
