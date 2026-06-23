@@ -183,6 +183,14 @@ class HostAdmin(ModelView, model=Host):
         self._pending_photo: dict[str, Any] | None = None
         if not data.get("languages"):
             raise ValueError("Select at least one language.")
+        email = data.get("email")
+        if email:
+            async with async_session() as session:
+                query = select(func.count()).where(Host.email == email)
+                if not is_created:
+                    query = query.where(Host.id != model.id)
+                if (await session.execute(query)).scalar_one():
+                    raise ValueError(f"Host with email '{email}' already exists.")
         upload = data.get("photo_file")
         if upload and hasattr(upload, "read"):
             content = await upload.read()
