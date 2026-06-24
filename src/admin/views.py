@@ -250,6 +250,7 @@ class HomesteadAdmin(ModelView, model=Homestead):
     column_list = [
         Homestead.id,
         Homestead.name,
+        Homestead.location,
         Homestead.region,
         Homestead.price_per_night,
         Homestead.is_active,
@@ -302,6 +303,7 @@ class HomesteadAdmin(ModelView, model=Homestead):
         "beds": _at_least_one,
         "bathrooms": _at_least_one,
         "name": _text_field(),
+        "location": _text_field(),
         "description": _text_field(),
     }
 
