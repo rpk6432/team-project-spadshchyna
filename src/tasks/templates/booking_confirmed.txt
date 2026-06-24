@@ -1,0 +1,12 @@
+Your booking is confirmed!
+
+Hello {{ first_name }}, great news — your stay is all set.
+
+Homestead: {{ homestead_name }}
+Dates: {{ check_in }} — {{ check_out }}
+Total: {{ total }} UAH
+
+We hope you enjoy your stay and the authentic traditions of the region. Have a wonderful trip!
+
+--
+Spadshchyna — Ethno-Homestead Archive of Ukraine
