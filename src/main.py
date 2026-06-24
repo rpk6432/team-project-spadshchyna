@@ -11,6 +11,7 @@ from admin.setup import setup_admin
 from api.router import router as api_router
 from config import settings
 from core.exceptions import AppError
+from core.redis import get_redis
 from s3.client import ensure_bucket
 
 
@@ -18,6 +19,7 @@ from s3.client import ensure_bucket
 async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
     await ensure_bucket()
     yield
+    await get_redis().close()
 
 
 app = FastAPI(title="Spadshchyna API", lifespan=lifespan)
