@@ -23,6 +23,7 @@ class Homestead(Base):
         ForeignKey("regions.id", ondelete="RESTRICT"), index=True
     )
     name: Mapped[str] = mapped_column(String(200))
+    location: Mapped[str] = mapped_column(String(200))
     description: Mapped[str] = mapped_column(Text)
     price_per_night: Mapped[int]
     base_guests: Mapped[int]

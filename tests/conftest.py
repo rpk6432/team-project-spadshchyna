@@ -117,6 +117,7 @@ async def seed_homestead(db: AsyncSession) -> Homestead:
         host_id=host.id,
         region_id=region.id,
         name="Stara Khata",
+        location="Yaremche village",
         description="A cozy village house.",
         price_per_night=1200,
         base_guests=2,
