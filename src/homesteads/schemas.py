@@ -66,6 +66,7 @@ class PricingResponse(BaseModel):
 class HomesteadCard(BaseModel):
     id: int
     name: str
+    location: str
     region: str
     price_per_night: int
     rating: float
@@ -81,6 +82,7 @@ class HomesteadCard(BaseModel):
                 {
                     "id": 1,
                     "name": "Stara Khata",
+                    "location": "Kamianets-Podilskyi city",
                     "region": "Khmelnytskyi Region",
                     "price_per_night": 1200,
                     "rating": 4.8,
@@ -99,6 +101,7 @@ class HomesteadCard(BaseModel):
 class HomesteadDetail(BaseModel):
     id: int
     name: str
+    location: str
     description: str
     bedrooms: int
     beds: int

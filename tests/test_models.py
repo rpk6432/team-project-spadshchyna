@@ -54,6 +54,7 @@ async def _create_homestead(db: AsyncSession, host: Host, region: Region) -> Hom
         host_id=host.id,
         region_id=region.id,
         name="Test Homestead",
+        location="Yaremche village",
         description="A lovely place to stay",
         price_per_night=1000,
         base_guests=2,
