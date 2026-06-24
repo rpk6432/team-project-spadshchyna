@@ -10,7 +10,9 @@ from core.exceptions import AlreadyExistsError
 from homesteads.service import compute_price, get_validated_homestead
 from models.booking import Booking
 from models.homestead import Homestead
+from models.user import User
 from payments.schemas import BookingListItem, BookingRequest, BookingResponse
+from tasks.email import send_booking_confirmed
 
 
 async def create_booking(
@@ -112,7 +114,12 @@ async def handle_webhook(db: AsyncSession, payload: bytes, sig: str) -> None:
 
     session_id = event.data.object.id
     result = await db.execute(
-        select(Booking).where(Booking.stripe_session_id == session_id)
+        select(Booking)
+        .where(Booking.stripe_session_id == session_id)
+        .options(
+            selectinload(Booking.user).load_only(User.email, User.first_name),
+            selectinload(Booking.homestead).load_only(Homestead.name),
+        )
     )
     booking = result.scalar_one_or_none()
     if booking is None:
@@ -120,6 +127,15 @@ async def handle_webhook(db: AsyncSession, payload: bytes, sig: str) -> None:
 
     booking.status = "confirmed"
     await db.commit()
+
+    send_booking_confirmed.delay(
+        email=booking.user.email,
+        first_name=booking.user.first_name,
+        homestead_name=booking.homestead.name,
+        check_in=str(booking.check_in),
+        check_out=str(booking.check_out),
+        total=booking.total,
+    )
 
 
 async def get_bookings(db: AsyncSession, user_id: int) -> list[BookingListItem]:
