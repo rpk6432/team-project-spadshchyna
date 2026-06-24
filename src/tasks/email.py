@@ -15,6 +15,8 @@ _templates = Environment(
 
 
 def _send_email(to: str, subject: str, template_name: str, **ctx: object) -> None:
+    logo_url = f"{settings.s3_public_url}/{settings.s3_bucket}/static/logo.png"
+    ctx["logo_url"] = logo_url
     html = _templates.get_template(f"{template_name}.html").render(**ctx)
     text = _templates.get_template(f"{template_name}.txt").render(**ctx)
 

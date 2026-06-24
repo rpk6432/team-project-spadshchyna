@@ -1,6 +1,7 @@
 import json
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Any
 
 import aioboto3
@@ -64,6 +65,24 @@ async def ensure_bucket() -> None:
             Bucket=settings.s3_bucket,
             Policy=json.dumps(policy),
         )
+
+        logo_key = "static/logo.png"
+        try:
+            await client.head_object(Bucket=settings.s3_bucket, Key=logo_key)
+        except ClientError:
+            logo_path = (
+                Path(__file__).resolve().parent.parent
+                / "tasks"
+                / "templates"
+                / "logo.png"
+            )
+            if logo_path.exists():
+                await client.put_object(
+                    Bucket=settings.s3_bucket,
+                    Key=logo_key,
+                    Body=logo_path.read_bytes(),
+                    ContentType="image/png",
+                )
 
 
 async def upload_file(
