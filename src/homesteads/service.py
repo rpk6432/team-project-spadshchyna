@@ -110,6 +110,7 @@ def to_card(homestead: Homestead, is_favourited: bool | None = None) -> Homestea
         id=homestead.id,
         name=homestead.name,
         location=homestead.location,
+        description=homestead.description,
         region=homestead.region.name,
         price_per_night=homestead.price_per_night,
         rating=homestead.rating,
