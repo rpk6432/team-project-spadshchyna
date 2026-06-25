@@ -15,6 +15,7 @@ from config import settings
 from core.exceptions import AlreadyExistsError, UnauthorizedError
 from core.redis import get_redis
 from models.user import User
+from tasks.email import send_welcome_email
 
 REFRESH_PREFIX = "refresh:"
 REFRESH_TTL = settings.jwt_refresh_ttl_days * 86400
@@ -42,6 +43,8 @@ async def register(db: AsyncSession, body: RegisterRequest) -> TokenResponse:
     )
     db.add(user)
     await db.flush()
+
+    send_welcome_email.delay(user.email, body.first_name)
 
     access_token, refresh_token = await _generate_tokens(user.id)
     return TokenResponse(access_token=access_token, refresh_token=refresh_token)

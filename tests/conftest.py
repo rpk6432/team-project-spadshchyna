@@ -64,6 +64,17 @@ async def reset_redis() -> AsyncIterator[None]:
     await redis_module._client.aclose()
 
 
+@pytest.fixture(autouse=True)
+def _mock_email_tasks(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Prevent email tasks from hitting the Celery broker during tests."""
+    import tasks.email as email_module
+
+    monkeypatch.setattr(email_module.send_welcome_email, "delay", lambda *a, **kw: None)
+    monkeypatch.setattr(
+        email_module.send_booking_confirmed, "delay", lambda *a, **kw: None
+    )
+
+
 @pytest.fixture
 async def client() -> AsyncIterator[AsyncClient]:
     import admin.auth as admin_auth_module
