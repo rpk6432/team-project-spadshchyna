@@ -73,6 +73,7 @@ class HomesteadCard(BaseModel):
     rating: float
     review_count: int
     main_photo: str | None
+    amenities: list[str]
     is_favourited: bool | None = Field(
         None, description="true/false if authenticated, null if not"
     )
@@ -90,6 +91,11 @@ class HomesteadCard(BaseModel):
                     "rating": 4.8,
                     "review_count": 12,
                     "main_photo": "https://s3.example.com/homesteads/1/main.jpg",
+                    "amenities": [
+                        "Traditional stove",
+                        "Heritage tours",
+                        "Historic vibe",
+                    ],
                     "is_favourited": None,
                 }
             ]

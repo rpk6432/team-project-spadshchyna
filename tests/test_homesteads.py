@@ -95,6 +95,8 @@ async def test_catalog_with_data(client: AsyncClient, db: AsyncSession) -> None:
     assert card["name"] == "Stara Khata"
     assert card["region"] == "Khmelnytskyi Region"
     assert "description" in card
+    assert "amenities" in card
+    assert len(card["amenities"]) <= 3
     assert card["main_photo"] is not None
 
 

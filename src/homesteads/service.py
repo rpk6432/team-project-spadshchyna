@@ -116,6 +116,7 @@ def to_card(homestead: Homestead, is_favourited: bool | None = None) -> Homestea
         rating=homestead.rating,
         review_count=homestead.review_count,
         main_photo=main_photo(homestead),
+        amenities=[a.name for a in homestead.amenities[:3]],
         is_favourited=is_favourited,
     )
 
@@ -133,6 +134,7 @@ async def get_catalog(
         base.options(
             selectinload(Homestead.region),
             selectinload(Homestead.photos),
+            selectinload(Homestead.amenities),
         )
         .order_by(Homestead.id.asc())
         .limit(filters.limit)
@@ -273,6 +275,7 @@ async def get_recommendations(
         .options(
             selectinload(Homestead.region),
             selectinload(Homestead.photos),
+            selectinload(Homestead.amenities),
         )
         .order_by(func.random())
         .limit(4)

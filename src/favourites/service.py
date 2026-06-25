@@ -54,6 +54,7 @@ async def get_favourites(db: AsyncSession, user_id: int) -> list[HomesteadCard]:
         .options(
             selectinload(Homestead.region),
             selectinload(Homestead.photos),
+            selectinload(Homestead.amenities),
         )
         .order_by(Favourite.created_at.desc())
     )
