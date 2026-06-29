@@ -1,0 +1,62 @@
+worker_processes auto;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    # Gzip compression
+    gzip on;
+    gzip_types application/json text/plain text/css;
+    gzip_min_length 256;
+
+    # Photo uploads via admin
+    client_max_body_size 10m;
+
+    # Security headers
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options SAMEORIGIN always;
+    add_header Referrer-Policy strict-origin-when-cross-origin always;
+
+    # HTTP -> HTTPS redirect
+    server {
+        listen 80;
+        server_name ${DOMAIN};
+
+        location /.well-known/acme-challenge/ {
+            root /var/www/certbot;
+        }
+
+        location / {
+            return 301 https://$host$request_uri;
+        }
+    }
+
+    # HTTPS
+    server {
+        listen 443 ssl;
+        server_name ${DOMAIN};
+
+        ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+        # API + Admin -> Uvicorn
+        location / {
+            proxy_pass http://app:8000;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        # S3 images -> MinIO
+        location /s3/ {
+            rewrite ^/s3/(.*) /$1 break;
+            proxy_pass http://minio:9000;
+            proxy_set_header Host minio:9000;
+            add_header Cache-Control "public, max-age=86400";
+        }
+    }
+}
