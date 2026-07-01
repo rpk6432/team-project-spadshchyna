@@ -133,6 +133,7 @@ async def seed_homesteads(
             name=data["name"],
             location=data["location"],
             description=data["description"],
+            short_description=data["short_description"],
             price_per_night=data["price_per_night"],
             base_guests=data["base_guests"],
             extra_guest_fee=data["extra_guest_fee"],
