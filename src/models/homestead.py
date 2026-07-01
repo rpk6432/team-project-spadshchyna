@@ -25,6 +25,7 @@ class Homestead(Base):
     name: Mapped[str] = mapped_column(String(200))
     location: Mapped[str] = mapped_column(String(200))
     description: Mapped[str] = mapped_column(Text)
+    short_description: Mapped[str] = mapped_column(String(200))
     price_per_night: Mapped[int]
     base_guests: Mapped[int]
     extra_guest_fee: Mapped[int]
