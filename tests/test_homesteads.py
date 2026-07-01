@@ -33,6 +33,7 @@ async def _seed(db: AsyncSession) -> tuple[Homestead, User]:
         name="Stara Khata",
         location="Yaremche village",
         description="A cozy village house.",
+        short_description="A cozy village house in Yaremche.",
         price_per_night=1200,
         base_guests=2,
         extra_guest_fee=300,
@@ -95,6 +96,7 @@ async def test_catalog_with_data(client: AsyncClient, db: AsyncSession) -> None:
     assert card["name"] == "Stara Khata"
     assert card["region"] == "Khmelnytskyi Region"
     assert "description" in card
+    assert "short_description" in card
     assert "amenities" in card
     assert len(card["amenities"]) <= 3
     assert card["main_photo"] is not None
