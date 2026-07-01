@@ -68,6 +68,7 @@ class HomesteadCard(BaseModel):
     name: str
     location: str
     description: str
+    short_description: str
     region: str
     price_per_night: int
     rating: float
@@ -85,7 +86,15 @@ class HomesteadCard(BaseModel):
                     "id": 1,
                     "name": "Stara Khata",
                     "location": "Kamianets-Podilskyi city",
-                    "description": "A cozy village house in the heart of Podillia.",
+                    "description": (
+                        "A cozy village house in the heart of Podillia."
+                        " Learn the art of traditional pottery,"
+                        " taste home-cooked meals,"
+                        " and explore sunflower fields."
+                    ),
+                    "short_description": (
+                        "A cozy village house in the heart of Podillia."
+                    ),
                     "region": "Khmelnytskyi Region",
                     "price_per_night": 1200,
                     "rating": 4.8,
@@ -111,6 +120,7 @@ class HomesteadDetail(BaseModel):
     name: str
     location: str
     description: str
+    short_description: str
     bedrooms: int
     beds: int
     bathrooms: int

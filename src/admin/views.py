@@ -305,6 +305,7 @@ class HomesteadAdmin(ModelView, model=Homestead):
         "name": _text_field(),
         "location": _text_field(),
         "description": _text_field(),
+        "short_description": _text_field(),
     }
 
     def form_edit_query(self, request: Request) -> Select[Any]:
