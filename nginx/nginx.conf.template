@@ -58,5 +58,13 @@ http {
             proxy_set_header Host minio:9000;
             add_header Cache-Control "public, max-age=86400";
         }
+
+        # Mailpit web UI
+        location /mail/ {
+            proxy_pass http://mailpit:8025;
+            proxy_set_header Host $host;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+        }
     }
 }
