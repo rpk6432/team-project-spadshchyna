@@ -4,9 +4,11 @@ from auth import service
 from auth.dependencies import CurrentUser, DBSession
 from auth.schemas import (
     AccessTokenResponse,
+    ForgotPasswordRequest,
     LoginRequest,
     RefreshRequest,
     RegisterRequest,
+    ResetPasswordRequest,
     TokenResponse,
     UserResponse,
 )
@@ -96,3 +98,68 @@ async def me(user: CurrentUser) -> UserResponse:
         email=user.email,
         is_admin=user.is_admin,
     )
+
+
+@router.post(
+    "/forgot-password",
+    summary="Request password reset",
+    response_model=MessageResponse,
+    responses={
+        200: {"description": "If this email is registered, a reset code will be sent"},
+        422: ERROR_422,
+    },
+)
+async def forgot_password(
+    body: ForgotPasswordRequest, db: DBSession
+) -> MessageResponse:
+    """
+    Send a 6-digit reset code to the user's email.
+
+    Always returns 200 regardless of whether the email exists.
+    Cooldown: 15 seconds between requests for the same email.
+    Code is valid for 10 minutes.
+    """
+    await service.forgot_password(db, body.email)
+    return MessageResponse(
+        detail="If this email is registered, a reset code will be sent"
+    )
+
+
+@router.post(
+    "/reset-password",
+    summary="Reset password",
+    response_model=MessageResponse,
+    responses={
+        200: {"description": "Password has been reset"},
+        400: {
+            "description": "Bad request",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "invalid_code": {
+                            "summary": "Invalid or expired code",
+                            "value": {"detail": "Invalid or expired code"},
+                        },
+                        "too_many_attempts": {
+                            "summary": "Too many attempts",
+                            "value": {
+                                "detail": "Too many attempts, request a new code"
+                            },
+                        },
+                    }
+                }
+            },
+        },
+        422: ERROR_422,
+    },
+)
+async def reset_password(body: ResetPasswordRequest, db: DBSession) -> MessageResponse:
+    """
+    Reset password using a 6-digit code from the reset email.
+
+    Max 5 attempts per code. After 5 wrong attempts the code is
+    invalidated and a new one must be requested.
+    On success all existing sessions are revoked.
+    """
+    await service.reset_password(db, body.email, body.code, body.new_password)
+    return MessageResponse(detail="Password has been reset")
