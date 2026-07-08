@@ -1,5 +1,7 @@
 from httpx import AsyncClient
 
+from core.redis import get_redis
+
 API = "/api/v1/auth"
 
 REGISTER_DATA = {
@@ -147,3 +149,153 @@ async def test_logout_refresh_reuse(client: AsyncClient) -> None:
         f"{API}/refresh", json={"refresh_token": data["refresh_token"]}
     )
     assert resp.status_code == 401
+
+
+# Forgot password
+
+
+async def test_forgot_password_success(client: AsyncClient) -> None:
+    await _register(client)
+    resp = await client.post(
+        f"{API}/forgot-password", json={"email": "john@example.com"}
+    )
+    assert resp.status_code == 200
+
+
+async def test_forgot_password_nonexistent_email(client: AsyncClient) -> None:
+    resp = await client.post(
+        f"{API}/forgot-password", json={"email": "nobody@example.com"}
+    )
+    assert resp.status_code == 200
+
+
+async def test_forgot_password_cooldown(client: AsyncClient) -> None:
+    await _register(client)
+    await client.post(f"{API}/forgot-password", json={"email": "john@example.com"})
+
+    stored_before = await get_redis().get("reset:john@example.com")
+
+    resp = await client.post(
+        f"{API}/forgot-password", json={"email": "john@example.com"}
+    )
+    assert resp.status_code == 200
+
+    stored_after = await get_redis().get("reset:john@example.com")
+    assert stored_before == stored_after
+
+
+# Reset password
+
+
+async def test_reset_password_success(client: AsyncClient) -> None:
+    await _register(client)
+    await client.post(f"{API}/forgot-password", json={"email": "john@example.com"})
+
+    stored = await get_redis().get("reset:john@example.com")
+    assert stored is not None
+    code = stored.split(":")[0]
+
+    resp = await client.post(
+        f"{API}/reset-password",
+        json={
+            "email": "john@example.com",
+            "code": code,
+            "new_password": "brandnewpass123",
+        },
+    )
+    assert resp.status_code == 200
+
+    resp = await client.post(
+        f"{API}/login",
+        json={"email": "john@example.com", "password": "brandnewpass123"},
+    )
+    assert resp.status_code == 200
+
+
+async def test_reset_password_wrong_code(client: AsyncClient) -> None:
+    await _register(client)
+    await client.post(f"{API}/forgot-password", json={"email": "john@example.com"})
+    resp = await client.post(
+        f"{API}/reset-password",
+        json={
+            "email": "john@example.com",
+            "code": "000000",
+            "new_password": "brandnewpass123",
+        },
+    )
+    assert resp.status_code == 400
+
+
+async def test_reset_password_expired(client: AsyncClient) -> None:
+    resp = await client.post(
+        f"{API}/reset-password",
+        json={
+            "email": "john@example.com",
+            "code": "123456",
+            "new_password": "brandnewpass123",
+        },
+    )
+    assert resp.status_code == 400
+
+
+async def test_reset_password_max_attempts(client: AsyncClient) -> None:
+    await _register(client)
+    await client.post(f"{API}/forgot-password", json={"email": "john@example.com"})
+    for _ in range(5):
+        await client.post(
+            f"{API}/reset-password",
+            json={
+                "email": "john@example.com",
+                "code": "000000",
+                "new_password": "brandnewpass123",
+            },
+        )
+    resp = await client.post(
+        f"{API}/reset-password",
+        json={
+            "email": "john@example.com",
+            "code": "000000",
+            "new_password": "brandnewpass123",
+        },
+    )
+    assert resp.status_code == 400
+    assert "Too many attempts" in resp.json()["detail"]
+
+
+async def test_reset_password_invalidates_sessions(
+    client: AsyncClient,
+) -> None:
+    data = await _register(client)
+    await client.post(f"{API}/forgot-password", json={"email": "john@example.com"})
+
+    stored = await get_redis().get("reset:john@example.com")
+    code = stored.split(":")[0]
+
+    await client.post(
+        f"{API}/reset-password",
+        json={
+            "email": "john@example.com",
+            "code": code,
+            "new_password": "brandnewpass123",
+        },
+    )
+
+    resp = await client.post(
+        f"{API}/refresh",
+        json={"refresh_token": data["refresh_token"]},
+    )
+    assert resp.status_code == 401
+
+
+async def test_reset_password_invalid_code_format(
+    client: AsyncClient,
+) -> None:
+    resp = await client.post(
+        f"{API}/reset-password",
+        json={
+            "email": "john@example.com",
+            "code": "abc",
+            "new_password": "brandnewpass123",
+        },
+    )
+    assert resp.status_code == 422

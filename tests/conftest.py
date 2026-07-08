@@ -73,6 +73,9 @@ def _mock_email_tasks(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         email_module.send_booking_confirmed, "delay", lambda *a, **kw: None
     )
+    monkeypatch.setattr(
+        email_module.send_reset_code_email, "delay", lambda *a, **kw: None
+    )
 
 
 @pytest.fixture
