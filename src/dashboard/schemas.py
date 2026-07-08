@@ -23,6 +23,7 @@ class PastJourney(BaseModel):
     homestead_name: str
     region: str
     main_photo: str | None
+    rating: float
     check_in: date
     check_out: date
 

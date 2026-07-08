@@ -90,6 +90,7 @@ async def test_dashboard_with_bookings(client: AsyncClient, db: AsyncSession) ->
     assert data["past_journeys"][0]["homestead_name"] == "Stara Khata"
     assert data["past_journeys"][0]["region"] == "Carpathians"
     assert data["past_journeys"][0]["main_photo"] is not None
+    assert data["past_journeys"][0]["rating"] >= 0
 
 
 async def test_dashboard_with_favourites(client: AsyncClient, db: AsyncSession) -> None:

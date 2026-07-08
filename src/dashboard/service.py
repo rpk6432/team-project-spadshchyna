@@ -93,7 +93,7 @@ async def _get_past_journeys(
         .join(Homestead, Booking.homestead_id == Homestead.id)
         .options(
             selectinload(Booking.homestead)
-            .load_only(Homestead.name, Homestead.region_id)
+            .load_only(Homestead.name, Homestead.region_id, Homestead.rating)
             .selectinload(Homestead.region)
             .load_only(Region.name),
             selectinload(Booking.homestead).selectinload(Homestead.photos),
@@ -112,6 +112,7 @@ async def _get_past_journeys(
             homestead_name=b.homestead.name,
             region=b.homestead.region.name,
             main_photo=main_photo(b.homestead),
+            rating=b.homestead.rating,
             check_in=b.check_in,
             check_out=b.check_out,
         )
