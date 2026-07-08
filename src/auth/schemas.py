@@ -42,7 +42,7 @@ class RefreshRequest(BaseModel):
 
     model_config = {
         "json_schema_extra": {
-            "examples": [{"refresh_token": "550e8400-e29b-41d4-a716-446655440000"}]
+            "examples": [{"refresh_token": "dGhpcyBpcyBhIHRlc3RUb2tlbjEyMzQ1Njc4OQ"}]
         }
     }
 
@@ -57,7 +57,7 @@ class TokenResponse(BaseModel):
             "examples": [
                 {
                     "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-                    "refresh_token": "550e8400-e29b-41d4-a716-446655440000",
+                    "refresh_token": "dGhpcyBpcyBhIHRlc3RUb2tlbjEyMzQ1Njc4OQ",
                     "token_type": "bearer",
                 }
             ]
@@ -97,6 +97,32 @@ class UserResponse(BaseModel):
                     "last_name": "Doe",
                     "email": "john.doe@example.com",
                     "is_admin": False,
+                }
+            ]
+        }
+    }
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+    model_config = {
+        "json_schema_extra": {"examples": [{"email": "john.doe@example.com"}]}
+    }
+
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    code: str = Field(pattern=r"^\d{6}$")
+    new_password: str = Field(min_length=8, max_length=128)
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "email": "john.doe@example.com",
+                    "code": "123456",
+                    "new_password": "newsecurepass123",
                 }
             ]
         }

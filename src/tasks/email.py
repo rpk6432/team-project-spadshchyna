@@ -60,3 +60,14 @@ def send_booking_confirmed(
         check_out=check_out,
         total=total,
     )
+
+
+@app.task(autoretry_for=(Exception,), retry_backoff=True, max_retries=5)
+def send_reset_code_email(email: str, first_name: str, code: str) -> None:
+    _send_email(
+        to=email,
+        subject="Your password reset code",
+        template_name="reset_password",
+        first_name=first_name,
+        code=code,
+    )
