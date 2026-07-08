@@ -82,11 +82,14 @@ async def test_dashboard_with_bookings(client: AsyncClient, db: AsyncSession) ->
     # Upcoming stay
     assert data["upcoming_stay"] is not None
     assert data["upcoming_stay"]["guests"] == 3
+    assert data["upcoming_stay"]["region"] == "Carpathians"
+    assert data["upcoming_stay"]["main_photo"] is not None
 
     # Past journeys
     assert len(data["past_journeys"]) == 1
     assert data["past_journeys"][0]["homestead_name"] == "Stara Khata"
     assert data["past_journeys"][0]["region"] == "Carpathians"
+    assert data["past_journeys"][0]["main_photo"] is not None
 
 
 async def test_dashboard_with_favourites(client: AsyncClient, db: AsyncSession) -> None:

@@ -11,6 +11,8 @@ class DashboardStats(BaseModel):
 class UpcomingStay(BaseModel):
     booking_id: int
     homestead_name: str
+    region: str
+    main_photo: str | None
     check_in: date
     check_out: date
     guests: int
@@ -20,6 +22,7 @@ class PastJourney(BaseModel):
     booking_id: int
     homestead_name: str
     region: str
+    main_photo: str | None
     check_in: date
     check_out: date
 

@@ -56,7 +56,13 @@ async def _get_upcoming(
     result = await db.execute(
         select(Booking)
         .join(Homestead, Booking.homestead_id == Homestead.id)
-        .options(selectinload(Booking.homestead).load_only(Homestead.name))
+        .options(
+            selectinload(Booking.homestead)
+            .load_only(Homestead.name, Homestead.region_id)
+            .selectinload(Homestead.region)
+            .load_only(Region.name),
+            selectinload(Booking.homestead).selectinload(Homestead.photos),
+        )
         .where(
             Booking.user_id == user_id,
             Booking.status.in_(_ACTIVE_STATUSES),
@@ -71,6 +77,8 @@ async def _get_upcoming(
     return UpcomingStay(
         booking_id=booking.id,
         homestead_name=booking.homestead.name,
+        region=booking.homestead.region.name,
+        main_photo=main_photo(booking.homestead),
         check_in=booking.check_in,
         check_out=booking.check_out,
         guests=booking.guests,
@@ -88,6 +96,7 @@ async def _get_past_journeys(
             .load_only(Homestead.name, Homestead.region_id)
             .selectinload(Homestead.region)
             .load_only(Region.name),
+            selectinload(Booking.homestead).selectinload(Homestead.photos),
         )
         .where(
             Booking.user_id == user_id,
@@ -102,6 +111,7 @@ async def _get_past_journeys(
             booking_id=b.id,
             homestead_name=b.homestead.name,
             region=b.homestead.region.name,
+            main_photo=main_photo(b.homestead),
             check_in=b.check_in,
             check_out=b.check_out,
         )
