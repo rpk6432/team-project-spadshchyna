@@ -20,3 +20,16 @@ def expire_pending_bookings() -> None:
             .values(status="canceled")
         )
         session.commit()
+
+
+@app.task
+def complete_confirmed_bookings() -> None:
+    """Mark confirmed bookings as completed when check_out has passed."""
+    today = datetime.now(UTC).date()
+    with database.sync_session() as session:
+        session.execute(
+            update(Booking)
+            .where(Booking.status == "confirmed", Booking.check_out <= today)
+            .values(status="completed")
+        )
+        session.commit()

@@ -5,7 +5,11 @@ from conftest import seed_homestead
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.booking import Booking
-from tasks.bookings import PENDING_TTL_MINUTES, expire_pending_bookings
+from tasks.bookings import (
+    PENDING_TTL_MINUTES,
+    complete_confirmed_bookings,
+    expire_pending_bookings,
+)
 
 
 async def _create_booking(
@@ -106,6 +110,36 @@ async def test_confirmed_booking_not_expired(
     await db.commit()
 
     expire_pending_bookings()
+
+    await db.refresh(booking)
+    assert booking.status == "confirmed"
+
+
+async def test_complete_past_confirmed_booking(
+    db: AsyncSession, setup_data: tuple[int, int]
+) -> None:
+    homestead_id, user_id = setup_data
+    booking = await _create_booking(db, homestead_id, user_id, minutes_ago=5)
+    booking.status = "confirmed"
+    booking.check_out = datetime.utcnow().date() - timedelta(days=1)
+    await db.commit()
+
+    complete_confirmed_bookings()
+
+    await db.refresh(booking)
+    assert booking.status == "completed"
+
+
+async def test_future_confirmed_not_completed(
+    db: AsyncSession, setup_data: tuple[int, int]
+) -> None:
+    homestead_id, user_id = setup_data
+    booking = await _create_booking(db, homestead_id, user_id, minutes_ago=5)
+    booking.status = "confirmed"
+    booking.check_out = datetime.utcnow().date() + timedelta(days=5)
+    await db.commit()
+
+    complete_confirmed_bookings()
 
     await db.refresh(booking)
     assert booking.status == "confirmed"

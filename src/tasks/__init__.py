@@ -21,6 +21,10 @@ app.config_from_object(
                 "task": "tasks.bookings.expire_pending_bookings",
                 "schedule": crontab(minute="*/10"),
             },
+            "complete-confirmed-bookings": {
+                "task": "tasks.bookings.complete_confirmed_bookings",
+                "schedule": crontab(minute=5, hour=0),
+            },
         },
     }
 )
