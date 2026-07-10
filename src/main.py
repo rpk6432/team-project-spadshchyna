@@ -1,5 +1,6 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from urllib.parse import urlparse
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,10 +25,13 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
 
 app = FastAPI(title="Spadshchyna API", lifespan=lifespan)
 
+_parsed = urlparse(settings.frontend_url)
+_cors_origin = f"{_parsed.scheme}://{_parsed.netloc}"
+
 app.add_middleware(SessionMiddleware, secret_key=settings.jwt_secret)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.frontend_url],
+    allow_origins=[_cors_origin],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
