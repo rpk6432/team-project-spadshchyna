@@ -1,0 +1,454 @@
+{
+  "admin": {
+    "first_name": "Admin",
+    "last_name": "Spadshchyna",
+    "email": "admin@spadshchyna.ua",
+    "password": "admin123",
+    "is_admin": true
+  },
+  "test_users": [
+    {
+      "first_name": "Taras",
+      "last_name": "Melnyk",
+      "email": "taras@example.com",
+      "password": "test1234"
+    },
+    {
+      "first_name": "Yulia",
+      "last_name": "Kravchuk",
+      "email": "yulia@example.com",
+      "password": "test1234"
+    }
+  ],
+  "bookings": [
+    {
+      "user_email": "taras@example.com",
+      "homestead_idx": 0,
+      "check_in": "2026-03-10",
+      "check_out": "2026-03-14",
+      "guests": 2,
+      "status": "confirmed"
+    },
+    {
+      "user_email": "taras@example.com",
+      "homestead_idx": 2,
+      "check_in": "2026-05-01",
+      "check_out": "2026-05-04",
+      "guests": 3,
+      "status": "completed"
+    },
+    {
+      "user_email": "taras@example.com",
+      "homestead_idx": 4,
+      "check_in": "2026-08-15",
+      "check_out": "2026-08-20",
+      "guests": 2,
+      "status": "pending"
+    },
+    {
+      "user_email": "yulia@example.com",
+      "homestead_idx": 1,
+      "check_in": "2026-04-05",
+      "check_out": "2026-04-08",
+      "guests": 2,
+      "status": "canceled"
+    },
+    {
+      "user_email": "yulia@example.com",
+      "homestead_idx": 3,
+      "check_in": "2026-06-01",
+      "check_out": "2026-06-05",
+      "guests": 4,
+      "status": "confirmed"
+    },
+    {
+      "user_email": "yulia@example.com",
+      "homestead_idx": 5,
+      "check_in": "2026-09-10",
+      "check_out": "2026-09-15",
+      "guests": 2,
+      "status": "confirmed"
+    },
+    {
+      "user_email": "admin@spadshchyna.ua",
+      "homestead_idx": 6,
+      "check_in": "2026-02-20",
+      "check_out": "2026-02-23",
+      "guests": 2,
+      "status": "completed"
+    },
+    {
+      "user_email": "admin@spadshchyna.ua",
+      "homestead_idx": 8,
+      "check_in": "2026-05-15",
+      "check_out": "2026-05-20",
+      "guests": 2,
+      "status": "confirmed"
+    },
+    {
+      "user_email": "admin@spadshchyna.ua",
+      "homestead_idx": 3,
+      "check_in": "2026-07-10",
+      "check_out": "2026-07-15",
+      "guests": 3,
+      "status": "pending"
+    }
+  ],
+  "regions": [
+    {"name": "Carpathians", "slug": "carpathians"},
+    {"name": "Polissia", "slug": "polissia"},
+    {"name": "Podillia", "slug": "podillia"},
+    {"name": "Zakarpattia", "slug": "zakarpattia"}
+  ],
+  "amenities": [
+    "Traditional stove",
+    "Heritage tours",
+    "Historic vibe",
+    "Folk storytelling",
+    "Wooden architecture",
+    "Garden & meadow",
+    "Local cuisine",
+    "Birdwatching",
+    "Pottery workshop",
+    "Embroidery class",
+    "Beekeeping",
+    "Horse riding",
+    "Fishing",
+    "Bonfire area",
+    "Traditional music",
+    "Herbal remedies",
+    "Stargazing",
+    "Berry picking",
+    "Mushroom foraging",
+    "Bread baking",
+    "Weaving workshop",
+    "Cheese making",
+    "Wine tasting",
+    "River swimming",
+    "Mountain hiking",
+    "Orchard walks",
+    "Handmade soap",
+    "Candle making",
+    "Woodcarving",
+    "Photography spots"
+  ],
+  "hosts": [
+    {
+      "name": "Olena Kovalenko",
+      "email": "olena@example.com",
+      "languages": ["uk", "en"],
+      "photo_file": "olena.jpg"
+    },
+    {
+      "name": "Mykola Shevchenko",
+      "email": "mykola@example.com",
+      "languages": ["uk", "en", "pl"],
+      "photo_file": "mykola.jpg"
+    },
+    {
+      "name": "Iryna Bondarenko",
+      "email": "iryna@example.com",
+      "languages": ["uk", "de"],
+      "photo_file": "iryna.jpg"
+    }
+  ],
+  "homesteads": [
+    {
+      "name": "Cossack Heritage Estate",
+      "location": "Verkhovyna village",
+      "region": "carpathians",
+      "host_idx": 0,
+      "description": "Step back in time and experience the spirit of Cossack heritage in this beautifully restored 19th-century estate. Handcrafted wooden architecture, traditional furnishings, and authentic details create a unique atmosphere of history and comfort.",
+      "short_description": "A restored 19th-century estate where wooden architecture, folk legends, and the legacy of the Cossack era meet.",
+      "price_per_night": 2800,
+      "base_guests": 2,
+      "extra_guest_fee": 400,
+      "max_guests": 6,
+      "cleaning_fee": 500,
+      "bedrooms": 3,
+      "beds": 4,
+      "bathrooms": 2,
+      "amenities": ["Traditional stove", "Heritage tours", "Historic vibe", "Folk storytelling", "Wooden architecture", "Garden & meadow", "Local cuisine", "Birdwatching", "Bread baking", "Photography spots"]
+    },
+    {
+      "name": "Polissia Woodland Retreat",
+      "location": "Olevsk forest",
+      "region": "polissia",
+      "host_idx": 1,
+      "description": "A secluded wooden cabin surrounded by ancient forests and wetlands. Wake up to birdsong, explore hidden trails, and enjoy evenings by the bonfire under a canopy of stars.",
+      "short_description": "A forest cabin surrounded by ancient wetlands, perfect for evening bonfires and morning birdsong.",
+      "price_per_night": 1800,
+      "base_guests": 2,
+      "extra_guest_fee": 300,
+      "max_guests": 4,
+      "cleaning_fee": 350,
+      "bedrooms": 2,
+      "beds": 2,
+      "bathrooms": 1,
+      "amenities": ["Birdwatching", "Fishing", "Bonfire area", "Garden & meadow", "Wooden architecture", "Mushroom foraging", "Stargazing", "Berry picking", "River swimming"]
+    },
+    {
+      "name": "Podillia Pottery House",
+      "location": "Kamianets-Podilskyi city",
+      "region": "podillia",
+      "host_idx": 2,
+      "description": "A charming homestead in the heart of Podillia's rolling hills. Learn the art of traditional pottery, taste home-cooked meals, and explore sunflower fields stretching to the horizon.",
+      "short_description": "Traditional pottery workshops and home-cooked meals amid Podillia's sunflower-covered hills.",
+      "price_per_night": 2200,
+      "base_guests": 2,
+      "extra_guest_fee": 350,
+      "max_guests": 5,
+      "cleaning_fee": 400,
+      "bedrooms": 2,
+      "beds": 3,
+      "bathrooms": 1,
+      "amenities": ["Pottery workshop", "Local cuisine", "Garden & meadow", "Heritage tours", "Traditional stove", "Bread baking", "Orchard walks", "Handmade soap", "Photography spots"]
+    },
+    {
+      "name": "Zakarpattian Thermal Homestead",
+      "location": "Berehove city",
+      "region": "zakarpattia",
+      "host_idx": 0,
+      "description": "A cozy homestead near the famous thermal springs of Berehove. Relax in natural hot pools, explore the Hungarian-influenced old town, and taste local wines from family vineyards.",
+      "short_description": "Thermal springs, family vineyards, and the multicultural charm of Zakarpattia at your doorstep.",
+      "price_per_night": 2500,
+      "base_guests": 2,
+      "extra_guest_fee": 400,
+      "max_guests": 6,
+      "cleaning_fee": 500,
+      "bedrooms": 3,
+      "beds": 4,
+      "bathrooms": 2,
+      "amenities": ["Herbal remedies", "Local cuisine", "Wine tasting", "Heritage tours", "Garden & meadow", "Photography spots", "Orchard walks", "Bread baking", "Historic vibe"]
+    },
+    {
+      "name": "Carpathian Bee Garden",
+      "location": "Yaremche village",
+      "region": "carpathians",
+      "host_idx": 1,
+      "description": "Nestled among alpine meadows, this homestead is home to a thriving apiary. Taste fresh honey, learn beekeeping secrets, and hike through wildflower trails with mountain views.",
+      "short_description": "A working apiary in the mountains with honey tastings and wildflower hiking trails.",
+      "price_per_night": 2400,
+      "base_guests": 2,
+      "extra_guest_fee": 350,
+      "max_guests": 4,
+      "cleaning_fee": 400,
+      "bedrooms": 2,
+      "beds": 2,
+      "bathrooms": 1,
+      "amenities": ["Beekeeping", "Garden & meadow", "Birdwatching", "Traditional stove", "Local cuisine", "Mountain hiking", "Berry picking", "Herbal remedies", "Bread baking"]
+    },
+    {
+      "name": "Embroidery Manor",
+      "location": "Vinnytsia city",
+      "region": "podillia",
+      "host_idx": 2,
+      "description": "A lovingly preserved manor where every room tells a story through hand-embroidered textiles. Join workshops, walk through herb gardens, and experience the living tradition of Ukrainian needlework.",
+      "short_description": "A heritage manor where Ukrainian needlework traditions live on through workshops and handcrafted interiors.",
+      "price_per_night": 2600,
+      "base_guests": 2,
+      "extra_guest_fee": 400,
+      "max_guests": 5,
+      "cleaning_fee": 450,
+      "bedrooms": 3,
+      "beds": 3,
+      "bathrooms": 2,
+      "amenities": ["Embroidery class", "Garden & meadow", "Historic vibe", "Traditional music", "Local cuisine", "Weaving workshop", "Candle making", "Herbal remedies", "Orchard walks"]
+    },
+    {
+      "name": "Hutsul Highland Hut",
+      "location": "Rakhiv village",
+      "region": "carpathians",
+      "host_idx": 0,
+      "description": "A traditional Hutsul wooden hut high in the Carpathian mountains. Enjoy folk music evenings, horseback rides through highland pastures, and the warmth of a centuries-old stove.",
+      "short_description": "A highland retreat with a centuries-old stove, folk music evenings, and horseback rides through the pastures.",
+      "price_per_night": 1900,
+      "base_guests": 2,
+      "extra_guest_fee": 300,
+      "max_guests": 4,
+      "cleaning_fee": 350,
+      "bedrooms": 2,
+      "beds": 2,
+      "bathrooms": 1,
+      "amenities": ["Traditional music", "Horse riding", "Traditional stove", "Wooden architecture", "Folk storytelling", "Mountain hiking", "Cheese making", "Bonfire area", "Stargazing"]
+    },
+    {
+      "name": "Polissia Herb Cottage",
+      "location": "Sarny village",
+      "region": "polissia",
+      "host_idx": 2,
+      "description": "A cozy cottage surrounded by medicinal herb gardens and berry bushes. Learn about traditional herbal remedies, forage in nearby forests, and relax in the quietest corner of Ukraine.",
+      "short_description": "Medicinal herb gardens, forest foraging, and the unhurried pace of rural Polissia.",
+      "price_per_night": 1600,
+      "base_guests": 2,
+      "extra_guest_fee": 250,
+      "max_guests": 3,
+      "cleaning_fee": 300,
+      "bedrooms": 1,
+      "beds": 2,
+      "bathrooms": 1,
+      "amenities": ["Garden & meadow", "Local cuisine", "Birdwatching", "Traditional stove", "Heritage tours", "Herbal remedies", "Mushroom foraging", "Berry picking", "Handmade soap"]
+    },
+    {
+      "name": "Uzhhorod Wine Cellar House",
+      "location": "Uzhhorod city",
+      "region": "zakarpattia",
+      "host_idx": 1,
+      "description": "A charming stone house with a centuries-old wine cellar in the heart of Uzhhorod. Sample local wines, stroll through the castle district, and enjoy the unique blend of Ukrainian, Hungarian, and Slovak cultures.",
+      "short_description": "A historic stone house with its own wine cellar, steps away from Uzhhorod's castle district.",
+      "price_per_night": 2900,
+      "base_guests": 2,
+      "extra_guest_fee": 450,
+      "max_guests": 6,
+      "cleaning_fee": 550,
+      "bedrooms": 3,
+      "beds": 4,
+      "bathrooms": 2,
+      "amenities": ["Wine tasting", "Local cuisine", "Heritage tours", "Historic vibe", "Garden & meadow", "Cheese making", "Photography spots", "Orchard walks", "Bread baking"]
+    },
+    {
+      "name": "Steppe Horse Ranch",
+      "location": "Uman city",
+      "region": "podillia",
+      "host_idx": 0,
+      "description": "An open-air ranch on the Podillia steppe where horses roam free. Ride across endless grasslands, watch sunsets from the saddle, and sleep under hand-woven blankets in a traditional farmhouse.",
+      "short_description": "Open grasslands, free-roaming horses, and golden sunsets over the Podillia steppe.",
+      "price_per_night": 2100,
+      "base_guests": 2,
+      "extra_guest_fee": 350,
+      "max_guests": 5,
+      "cleaning_fee": 400,
+      "bedrooms": 2,
+      "beds": 3,
+      "bathrooms": 1,
+      "amenities": ["Horse riding", "Bonfire area", "Garden & meadow", "Folk storytelling", "Traditional music", "Stargazing", "Photography spots", "Bread baking", "Local cuisine"]
+    },
+    {
+      "name": "Carpathian Woodcarver's Lodge",
+      "location": "Kosiv village",
+      "region": "carpathians",
+      "host_idx": 2,
+      "description": "Every beam and doorframe in this lodge is hand-carved by local masters. Watch artisans at work, try your hand at woodcarving, and explore the surrounding spruce forests on guided nature walks.",
+      "short_description": "A lodge crafted by local masters, with woodcarving workshops and guided walks through spruce forests.",
+      "price_per_night": 2700,
+      "base_guests": 2,
+      "extra_guest_fee": 400,
+      "max_guests": 5,
+      "cleaning_fee": 500,
+      "bedrooms": 2,
+      "beds": 3,
+      "bathrooms": 1,
+      "amenities": ["Wooden architecture", "Heritage tours", "Traditional stove", "Birdwatching", "Garden & meadow", "Woodcarving", "Mountain hiking", "Mushroom foraging", "Photography spots"]
+    },
+    {
+      "name": "Mukachevo Castle Cottage",
+      "location": "Mukachevo city",
+      "region": "zakarpattia",
+      "host_idx": 2,
+      "description": "A cozy stone cottage in the shadow of the medieval Palanok Castle. Explore centuries-old fortifications, browse the colorful local market, and enjoy Zakarpattian cuisine with a glass of homemade wine.",
+      "short_description": "A stone cottage in the shadow of Palanok Castle with Zakarpattian cuisine and homemade wine.",
+      "price_per_night": 3100,
+      "base_guests": 2,
+      "extra_guest_fee": 350,
+      "max_guests": 4,
+      "cleaning_fee": 400,
+      "bedrooms": 2,
+      "beds": 2,
+      "bathrooms": 1,
+      "amenities": ["Heritage tours", "Historic vibe", "Local cuisine", "Wine tasting", "Garden & meadow", "Photography spots", "Bread baking", "Traditional stove", "Candle making"]
+    }
+  ],
+  "review_categories": ["location", "cleanliness", "hospitality", "atmosphere", "value"],
+  "reviews_pool": [
+    {
+      "author_name": "Anna M.",
+      "country": "Germany",
+      "rating": 5.0,
+      "text": "An unforgettable experience. The host was incredibly welcoming and the surroundings are breathtaking."
+    },
+    {
+      "author_name": "James L.",
+      "country": "United Kingdom",
+      "rating": 4.5,
+      "text": "Loved every moment. The traditional atmosphere is authentic and the food was amazing."
+    },
+    {
+      "author_name": "Sophie R.",
+      "country": "France",
+      "rating": 4.0,
+      "text": "A peaceful retreat far from the city. The homestead has real character and charm."
+    },
+    {
+      "author_name": "Tomasz K.",
+      "country": "Poland",
+      "rating": 5.0,
+      "text": "Best trip we've ever taken. The cultural activities were a highlight for the whole family."
+    },
+    {
+      "author_name": "Maria S.",
+      "country": "Ukraine",
+      "rating": 4.5,
+      "text": "Felt like visiting grandparents in the countryside. Genuine hospitality and delicious food."
+    },
+    {
+      "author_name": "Erik N.",
+      "country": "Sweden",
+      "rating": 5.0,
+      "text": "Quiet and beautiful. Exactly what we needed to disconnect and recharge."
+    },
+    {
+      "author_name": "Isabella C.",
+      "country": "Italy",
+      "rating": 5.0,
+      "text": "The attention to heritage details is remarkable. A truly unique place to stay."
+    },
+    {
+      "author_name": "David W.",
+      "country": "Canada",
+      "rating": 4.5,
+      "text": "We came for two nights and wished we'd booked a week. Highly recommended."
+    },
+    {
+      "author_name": "Katja B.",
+      "country": "Austria",
+      "rating": 5.0,
+      "text": "Great location and very clean. The hosts go above and beyond to make you feel at home."
+    },
+    {
+      "author_name": "Olha P.",
+      "country": "Ukraine",
+      "rating": 5.0,
+      "text": "A hidden gem. The workshops were so much fun and the nature around is stunning."
+    },
+    {
+      "author_name": "Lucas H.",
+      "country": "Netherlands",
+      "rating": 5.0,
+      "text": "Everything was perfect — the house, the surroundings, the food. We'll definitely be back."
+    },
+    {
+      "author_name": "Marta V.",
+      "country": "Czech Republic",
+      "rating": 5.0,
+      "text": "One of the most authentic stays I've ever had. The host shared so many local stories and traditions."
+    },
+    {
+      "author_name": "Andrius P.",
+      "country": "Lithuania",
+      "rating": 4.5,
+      "text": "Very peaceful and well-maintained. A wonderful way to experience Ukrainian countryside life."
+    },
+    {
+      "author_name": "Clara M.",
+      "country": "Spain",
+      "rating": 4.0,
+      "text": "Lovely setting and warm hospitality. The area is beautiful, though a bit remote for day trips."
+    },
+    {
+      "author_name": "Nadia K.",
+      "country": "Romania",
+      "rating": 5.0,
+      "text": "Felt right at home from the moment we arrived. The handmade details everywhere are incredible."
+    }
+  ]
+}

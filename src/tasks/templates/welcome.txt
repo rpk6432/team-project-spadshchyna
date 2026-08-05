@@ -1,0 +1,8 @@
+Welcome, {{ first_name }}!
+
+Thank you for joining us. Spadshchyna helps you find and book unique rural homesteads across Ukraine.
+
+We hope you find the perfect place for your next trip.
+
+--
+Spadshchyna — Ethno-Homestead Archive of Ukraine

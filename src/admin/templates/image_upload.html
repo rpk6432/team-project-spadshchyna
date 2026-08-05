@@ -1,0 +1,23 @@
+<div>
+  <input type="file" id="$fid" name="$name" accept="image/*"
+         class="form-control" style="margin-bottom:8px">
+  <img id="$fid-preview" alt="Upload preview"
+       style="display:none;max-width:200px;max-height:200px;
+              border:1px solid #dee2e6;border-radius:4px;margin-top:4px">
+</div>
+<script>
+(function(){
+  const inp=document.getElementById('$fid');
+  const img=document.getElementById('$fid-preview');
+  inp.addEventListener('change',function(){
+    const f=this.files&&this.files[0];
+    if(f&&f.type.startsWith('image/')){
+      const r=new FileReader();
+      r.onload=e=>{img.src=e.target.result;img.style.display='block'};
+      r.readAsDataURL(f);
+    } else {
+      img.style.display='none';img.src='';
+    }
+  });
+})();
+</script>

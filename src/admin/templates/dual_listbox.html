@@ -1,0 +1,41 @@
+<div style="display:flex;gap:10px;align-items:stretch">
+  <div style="flex:1">
+    <label for="$fid-avail" style="font-weight:600;margin-bottom:4px;display:block">Available</label>
+    <select id="$fid-avail" multiple size="12"
+            style="width:100%;min-height:200px" class="form-control">
+      $avail_opts
+    </select>
+  </div>
+  <div style="display:flex;flex-direction:column;justify-content:center;gap:6px">
+    <button type="button" id="$fid-add"
+            class="btn btn-sm btn-outline-primary"
+            title="Add selected">▶</button>
+    <button type="button" id="$fid-rm"
+            class="btn btn-sm btn-outline-primary"
+            title="Remove selected">◀</button>
+  </div>
+  <div style="flex:1">
+    <label for="$fid-sel" style="font-weight:600;margin-bottom:4px;display:block">Selected</label>
+    <select id="$fid-sel" name="$name" multiple size="12"
+            style="width:100%;min-height:200px" class="form-control">
+      $sel_opts
+    </select>
+  </div>
+</div>
+<script>
+(function(){
+  const a=document.getElementById('$fid-avail');
+  const s=document.getElementById('$fid-sel');
+  function clr(el){Array.from(el.options).forEach(o=>o.selected=false)}
+  a.addEventListener('focus',()=>clr(s));
+  s.addEventListener('focus',()=>clr(a));
+  function mv(from,to){
+    Array.from(from.selectedOptions).forEach(o=>{to.appendChild(o);o.selected=false});
+  }
+  document.getElementById('$fid-add').onclick=()=>mv(a,s);
+  document.getElementById('$fid-rm').onclick=()=>mv(s,a);
+  const form=s.closest('form');
+  if(form)form.addEventListener('submit',()=>
+    Array.from(s.options).forEach(o=>o.selected=true));
+})();
+</script>
